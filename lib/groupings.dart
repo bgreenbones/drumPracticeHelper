@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'styles.dart';
 
 class Groupings extends StatefulWidget {
   const Groupings({super.key});
@@ -72,16 +73,12 @@ class _GroupingsState extends State<Groupings> {
       var i = entry.key;
       var c = entry.value;
       return i % (divisionsPerBeat * beatsPerBar) == 0
-          ? Text(c, style: const TextStyle(color: Colors.greenAccent))
+          ? Text(c, style: barMarker)
           : i % divisionsPerBeat == 0
-              ? Text(c,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.cyan))
+              ? Text(c, style: beatMarker)
               : Text(c);
     }).toList();
   }
-
-  final Color trimColor = Colors.blueGrey;
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +88,7 @@ class _GroupingsState extends State<Groupings> {
           backgroundColor: trimColor,
         ),
         body: DefaultTextStyle(
-          style: const TextStyle(
-            fontSize: 18,
-            color: Colors.white70,
-          ),
+          style: defaultText,
           child: Container(
             padding: const EdgeInsets.all(16.0),
             color: Colors.black87,
@@ -109,17 +103,13 @@ class _GroupingsState extends State<Groupings> {
                   children: [
                     ElevatedButton(
                       onPressed: () => setState(() => parts.add("")),
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(trimColor)),
+                      style: buttonStyle,
                       child: const Text("more parts"),
                     ),
                     const SizedBox(width: 16.0),
                     ElevatedButton(
                       onPressed: () => setState(() => parts.removeLast()),
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(trimColor)),
+                      style: buttonStyle,
                       child: const Text("less parts"),
                     ),
                   ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/possibleStickings.dart';
 import 'groupings.dart';
 
 void main() {
@@ -15,6 +16,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Drum Helper', home: Groupings());
+    return const MaterialApp(title: 'Drum Helper', home: PossibleStickings());
   }
 }
