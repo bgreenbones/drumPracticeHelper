@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
 import 'styles.dart';
@@ -18,15 +20,33 @@ class _PossibleStickingsState extends State<PossibleStickings> {
   // }
   int maxBounces = 2;
   int minBounces = 1;
-
   List<String> sticks = ['R', 'L'];
-
   int stickingLength = 6;
+  bool avoidNecessaryAlternation = true;
 
   List<String> generateStickings([String partialSticking = '']) {
     List<String> possibleStickings = [];
 
     if (partialSticking.length == stickingLength) {
+      if (avoidNecessaryAlternation &&
+          partialSticking[0] == partialSticking[partialSticking.length - 1]) {
+        int beginningBounceLength = 1;
+        int endingBounceLength = 1;
+
+        while (beginningBounceLength < partialSticking.length &&
+            partialSticking[beginningBounceLength] == partialSticking[0]) {
+          beginningBounceLength++;
+        }
+        while (endingBounceLength < partialSticking.length &&
+            partialSticking[partialSticking.length - 1 - endingBounceLength] ==
+                partialSticking[partialSticking.length - 1]) {
+          endingBounceLength++;
+        }
+
+        if (beginningBounceLength + endingBounceLength > maxBounces) {
+          return [];
+        }
+      }
       return [partialSticking];
     }
     if (partialSticking.length > stickingLength) {
@@ -98,6 +118,14 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                       max: 4,
                       step: 1,
                       onChanged: maximumBouncesChanged)
+                ]),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Text("avoid necessary alternation:"),
+                  Switch(
+                      value: avoidNecessaryAlternation,
+                      onChanged: (val) => setState(() {
+                            avoidNecessaryAlternation = val;
+                          }))
                 ]),
                 const SizedBox(height: 16.0),
                 // Row(
