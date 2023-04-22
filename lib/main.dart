@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rhythm_practice_helper/possibleStickings.dart';
+import 'possible_stickings.dart';
 import 'groupings.dart';
 
 void main() {

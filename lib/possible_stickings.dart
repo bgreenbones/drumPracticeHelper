@@ -1,6 +1,5 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/number_stepper.dart';
 import 'styles.dart';
 
 class PossibleStickings extends StatefulWidget {
@@ -50,6 +49,14 @@ class _PossibleStickingsState extends State<PossibleStickings> {
     return possibleStickings;
   }
 
+  void minimumBouncesChanged(int val) {
+    setState(() => minBounces = val <= maxBounces ? val : minBounces);
+  }
+
+  void maximumBouncesChanged(int val) {
+    setState(() => maxBounces = val >= minBounces ? val : maxBounces);
+  }
+
   // @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,6 +74,31 @@ class _PossibleStickingsState extends State<PossibleStickings> {
               children: [
                 const Text(
                     "visualize all possible stickings, with some constraints"),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Text("sticking length:"),
+                  NumberStepper(
+                      initialValue: stickingLength,
+                      min: 2,
+                      max: 12,
+                      step: 1,
+                      onChanged: (val) => setState(() => stickingLength = val)),
+                ]),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Text("min: "),
+                  NumberStepper(
+                      initialValue: minBounces,
+                      min: 1,
+                      max: 4,
+                      step: 1,
+                      onChanged: minimumBouncesChanged),
+                  const Text("max: "),
+                  NumberStepper(
+                      initialValue: maxBounces,
+                      min: 1,
+                      max: 4,
+                      step: 1,
+                      onChanged: maximumBouncesChanged)
+                ]),
                 const SizedBox(height: 16.0),
                 // Row(
                 //   mainAxisAlignment: MainAxisAlignment.center,
