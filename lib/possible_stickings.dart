@@ -11,16 +11,23 @@ class PossibleStickings extends StatefulWidget {
   _PossibleStickingsState createState() => _PossibleStickingsState();
 }
 
+class Stick {
+  Stick({required this.symbol, this.maxBounces = 2, this.minBounces = 1});
+  final String symbol;
+  int maxBounces;
+  int minBounces;
+}
+
 class _PossibleStickingsState extends State<PossibleStickings> {
   // TODO: options per stick
-  // class Stick {
-  //   Char symbol;
-  //   int maxBounces;
-  //   int minBounces;
-  // }
-  int maxBounces = 2;
-  int minBounces = 1;
-  List<String> sticks = ['R', 'L'];
+  // int maxBounces = 2;
+  // int minBounces = 1;
+  // List<String> sticks = ['R', 'L'];
+  // List<String> stickSymbols = ;
+  Map<String, Stick> sticks = {
+    for (String s in ['R', 'L']) s: Stick(symbol: s)
+  };
+
   int stickingLength = 6;
   bool avoidNecessaryAlternation = true;
 
@@ -43,7 +50,8 @@ class _PossibleStickingsState extends State<PossibleStickings> {
           endingBounceLength++;
         }
 
-        if (beginningBounceLength + endingBounceLength > maxBounces) {
+        if (beginningBounceLength + endingBounceLength >
+            sticks[partialSticking[0]]!.maxBounces) {
           return [];
         }
       }
@@ -53,15 +61,18 @@ class _PossibleStickingsState extends State<PossibleStickings> {
       return [];
     }
 
-    List<String> potentialSticks = partialSticking.isEmpty
-        ? sticks
-        : sticks
+    List<Stick> potentialSticks = partialSticking.isEmpty
+        ? sticks.values.toList()
+        : sticks.values
+            .toList()
             .where((stick) =>
-                stick[0] != partialSticking[partialSticking.length - 1])
+                stick.symbol != partialSticking[partialSticking.length - 1])
             .toList();
-    for (String stick in potentialSticks) {
-      for (int bounces = minBounces; bounces <= maxBounces; bounces++) {
-        String sticking = partialSticking + stick * bounces;
+    for (Stick stick in potentialSticks) {
+      for (int bounces = stick.minBounces;
+          bounces <= stick.maxBounces;
+          bounces++) {
+        String sticking = partialSticking + stick.symbol * bounces;
         possibleStickings += generateStickings(sticking);
       }
     }
@@ -69,12 +80,14 @@ class _PossibleStickingsState extends State<PossibleStickings> {
     return possibleStickings;
   }
 
-  void minimumBouncesChanged(int val) {
-    setState(() => minBounces = val <= maxBounces ? val : minBounces);
+  void minimumBouncesChanged(int val, Stick stick) {
+    setState(() =>
+        stick.minBounces = val <= stick.maxBounces ? val : stick.minBounces);
   }
 
-  void maximumBouncesChanged(int val) {
-    setState(() => maxBounces = val >= minBounces ? val : maxBounces);
+  void maximumBouncesChanged(int val, Stick stick) {
+    setState(() =>
+        stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
   }
 
   // @override
@@ -92,92 +105,103 @@ class _PossibleStickingsState extends State<PossibleStickings> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                    "visualize all possible stickings, with some constraints"),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text("sticking length:"),
-                  NumberStepper(
-                      initialValue: stickingLength,
-                      min: 2,
-                      max: 12,
-                      step: 1,
-                      onChanged: (val) => setState(() => stickingLength = val)),
-                ]),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text("min: "),
-                  NumberStepper(
-                      initialValue: minBounces,
-                      min: 1,
-                      max: 4,
-                      step: 1,
-                      onChanged: minimumBouncesChanged),
-                  const Text("max: "),
-                  NumberStepper(
-                      initialValue: maxBounces,
-                      min: 1,
-                      max: 4,
-                      step: 1,
-                      onChanged: maximumBouncesChanged)
-                ]),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text("avoid necessary alternation:"),
-                  Switch(
-                      value: avoidNecessaryAlternation,
-                      onChanged: (val) => setState(() {
-                            avoidNecessaryAlternation = val;
-                          }))
-                ]),
-                const SizedBox(height: 16.0),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     ElevatedButton(
-                //       onPressed: () => setState(() => parts.add("")),
-                //       style: buttonStyle,
-                //       child: const Text("more parts"),
-                //     ),
-                //     const SizedBox(width: 16.0),
-                //     ElevatedButton(
-                //       onPressed: () => setState(() => parts.removeLast()),
-                //       style: buttonStyle,
-                //       child: const Text("less parts"),
-                //     ),
-                //   ],
-                // ),
-                const SizedBox(height: 16.0),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // for (var i = 0; i < parts.length; i++)
-                        //   TextField(
-                        //     decoration: InputDecoration(
-                        //         hintText: "Part ${i + 1}",
-                        //         border: const OutlineInputBorder(),
-                        //         filled: true,
-                        //         fillColor: Colors.white70),
-                        //     onChanged: (value) => setPart(i, value),
-                        //     controller: TextEditingController(
-                        //       text: parts[i],
-                        //     ),
-                        //   ),
-                        // const SizedBox(height: 16.0),
-                        const Text("stickings:"),
-                        const SizedBox(height: 8.0),
-                        ...generateStickings().map((sticking) {
-                          return Container(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [Text(sticking)],
-                            ),
-                          );
-                        }),
-                      ],
+                    const Text(
+                        "visualize all possible stickings, with some constraints"),
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Text("sticking length:"),
+                      NumberStepper(
+                          initialValue: stickingLength,
+                          min: 2,
+                          max: 12,
+                          step: 1,
+                          onChanged: (val) =>
+                              setState(() => stickingLength = val)),
+                    ])
+                  ] +
+                  sticks.values
+                      .map((stick) => Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("${stick.symbol}: "),
+                                const Text("min: "),
+                                NumberStepper(
+                                    initialValue: stick.minBounces,
+                                    min: 1,
+                                    max: 4,
+                                    step: 1,
+                                    onChanged: (val) =>
+                                        minimumBouncesChanged(val, stick)),
+                                const Text("max: "),
+                                NumberStepper(
+                                    initialValue: stick.maxBounces,
+                                    min: 1,
+                                    max: 4,
+                                    step: 1,
+                                    onChanged: (val) =>
+                                        maximumBouncesChanged(val, stick))
+                              ]))
+                      .toList() +
+                  [
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Text("avoid necessary alternation:"),
+                      Switch(
+                          value: avoidNecessaryAlternation,
+                          onChanged: (val) => setState(() {
+                                avoidNecessaryAlternation = val;
+                              }))
+                    ]),
+                    const SizedBox(height: 16.0),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     ElevatedButton(
+                    //       onPressed: () => setState(() => parts.add("")),
+                    //       style: buttonStyle,
+                    //       child: const Text("more parts"),
+                    //     ),
+                    //     const SizedBox(width: 16.0),
+                    //     ElevatedButton(
+                    //       onPressed: () => setState(() => parts.removeLast()),
+                    //       style: buttonStyle,
+                    //       child: const Text("less parts"),
+                    //     ),
+                    //   ],
+                    // ),
+                    const SizedBox(height: 16.0),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            // for (var i = 0; i < parts.length; i++)
+                            //   TextField(
+                            //     decoration: InputDecoration(
+                            //         hintText: "Part ${i + 1}",
+                            //         border: const OutlineInputBorder(),
+                            //         filled: true,
+                            //         fillColor: Colors.white70),
+                            //     onChanged: (value) => setPart(i, value),
+                            //     controller: TextEditingController(
+                            //       text: parts[i],
+                            //     ),
+                            //   ),
+                            // const SizedBox(height: 16.0),
+                            const Text("stickings:"),
+                            const SizedBox(height: 8.0),
+                            ...generateStickings().map((sticking) {
+                              return Container(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [Text(sticking)],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
             ),
           ),
         ));
