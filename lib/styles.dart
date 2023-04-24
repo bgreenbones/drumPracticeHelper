@@ -8,6 +8,8 @@ const TextStyle defaultText = TextStyle(
   color: Colors.white70,
 );
 
+const elementPadding = EdgeInsets.all(2.0);
+
 const TextStyle barMarker =
     TextStyle(fontWeight: FontWeight.w900, color: Colors.greenAccent);
 const TextStyle beatMarker =

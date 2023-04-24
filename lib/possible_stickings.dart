@@ -105,7 +105,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
         stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
   }
 
-  // @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
@@ -115,7 +115,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
         body: DefaultTextStyle(
           style: defaultText,
           child: Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: elementPadding,
             color: backgroundColor,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +123,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                     const Text(
                         "visualize all possible stickings, with some constraints"),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text("sticking length:"),
+                      const Text("length:"),
                       NumberStepper(
                           initialValue: stickingLength,
                           min: 2,
@@ -131,10 +131,8 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                           step: 1,
                           onChanged: (val) => {
                                 setState(() => {stickingLength = val})
-                              })
-                    ]),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text("number of limbs: "),
+                              }),
+                      const Text("limbs: "),
                       NumberStepper(
                           initialValue: sticks.length,
                           min: 2,
@@ -187,45 +185,15 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                               }))
                     ]),
                     const SizedBox(height: 16.0),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     ElevatedButton(
-                    //       onPressed: () => setState(() => parts.add("")),
-                    //       style: buttonStyle,
-                    //       child: const Text("more parts"),
-                    //     ),
-                    //     const SizedBox(width: 16.0),
-                    //     ElevatedButton(
-                    //       onPressed: () => setState(() => parts.removeLast()),
-                    //       style: buttonStyle,
-                    //       child: const Text("less parts"),
-                    //     ),
-                    //   ],
-                    // ),
-                    const SizedBox(height: 16.0),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            // for (var i = 0; i < parts.length; i++)
-                            //   TextField(
-                            //     decoration: InputDecoration(
-                            //         hintText: "Part ${i + 1}",
-                            //         border: const OutlineInputBorder(),
-                            //         filled: true,
-                            //         fillColor: Colors.white70),
-                            //     onChanged: (value) => setPart(i, value),
-                            //     controller: TextEditingController(
-                            //       text: parts[i],
-                            //     ),
-                            //   ),
-                            // const SizedBox(height: 16.0),
                             const Text("stickings:"),
                             const SizedBox(height: 8.0),
                             ...generateStickings().map((sticking) {
                               return Container(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: elementPadding,
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
