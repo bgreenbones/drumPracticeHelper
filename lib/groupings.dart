@@ -91,7 +91,7 @@ class _GroupingsState extends State<Groupings> {
           style: defaultText,
           child: Container(
             padding: const EdgeInsets.all(16.0),
-            color: Colors.black87,
+            color: backgroundColor,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

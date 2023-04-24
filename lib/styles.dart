@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 const Color trimColor = Colors.blueGrey;
+const Color backgroundColor = Colors.black87;
 
 const TextStyle defaultText = TextStyle(
   fontSize: 18,

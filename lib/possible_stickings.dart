@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
 import 'styles.dart';
@@ -13,17 +11,34 @@ class PossibleStickings extends StatefulWidget {
 
 class Stick {
   Stick({required this.symbol, this.maxBounces = 2, this.minBounces = 1});
-  final String symbol;
+  String symbol;
   int maxBounces;
   int minBounces;
 }
 
 class _PossibleStickingsState extends State<PossibleStickings> {
-  // TODO: options per stick
-  // int maxBounces = 2;
-  // int minBounces = 1;
-  // List<String> sticks = ['R', 'L'];
-  // List<String> stickSymbols = ;
+  List<String> stickOptions = ['R', 'L', 'K', 'H'];
+  List<DropdownMenuItem<String>> unusedSticks(String currentValue) {
+    List<String> usedSticks = sticks.keys.toList();
+    return [
+          DropdownMenuItem(
+              value: currentValue,
+              child: Text(currentValue, style: defaultText))
+        ] +
+        stickOptions
+            .where((s) => !usedSticks.contains(s))
+            .map((s) =>
+                DropdownMenuItem(value: s, child: Text(s, style: defaultText)))
+            .toList();
+  }
+
+  Map<String, Stick> getSticks(int numberOfSticks) {
+    return {
+      for (String s in stickOptions.sublist(0, numberOfSticks))
+        s: Stick(symbol: s)
+    };
+  }
+
   Map<String, Stick> sticks = {
     for (String s in ['R', 'L']) s: Stick(symbol: s)
   };
@@ -101,7 +116,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
           style: defaultText,
           child: Container(
             padding: const EdgeInsets.all(16.0),
-            color: Colors.black87,
+            color: backgroundColor,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -114,15 +129,35 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                           min: 2,
                           max: 12,
                           step: 1,
+                          onChanged: (val) => {
+                                setState(() => {stickingLength = val})
+                              })
+                    ]),
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Text("number of limbs: "),
+                      NumberStepper(
+                          initialValue: sticks.length,
+                          min: 2,
+                          max: stickOptions.length,
+                          step: 1,
                           onChanged: (val) =>
-                              setState(() => stickingLength = val)),
-                    ])
+                              setState(() => sticks = getSticks(val))),
+                    ]),
                   ] +
                   sticks.values
                       .map((stick) => Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text("${stick.symbol}: "),
+                                DropdownButton(
+                                    items: unusedSticks(stick.symbol),
+                                    value: stick.symbol,
+                                    dropdownColor: backgroundColor,
+                                    onChanged: (val) => setState(() {
+                                          sticks.remove(stick.symbol);
+                                          stick.symbol = val ?? stick.symbol;
+                                          sticks.putIfAbsent(
+                                              stick.symbol, () => stick);
+                                        })),
                                 const Text("min: "),
                                 NumberStepper(
                                     initialValue: stick.minBounces,
@@ -145,6 +180,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       const Text("avoid necessary alternation:"),
                       Switch(
+                          activeColor: trimColor,
                           value: avoidNecessaryAlternation,
                           onChanged: (val) => setState(() {
                                 avoidNecessaryAlternation = val;
