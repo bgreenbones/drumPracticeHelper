@@ -9,36 +9,54 @@ class Groupings extends StatefulWidget {
 }
 
 class _GroupingsState extends State<Groupings> {
-  List<String> parts = ['x..x', 'x.xx.'];
+  final List<TextEditingController> _partControllers = [
+    TextEditingController(text: 'x..x'),
+    TextEditingController(text: 'x.xx.'),
+  ];
+  late Function() _partControllerListener;
   int divisionsPerBeat = 4;
   int beatsPerBar = 4;
 
+  @override
+  void initState() {
+    super.initState();
+    _partControllerListener = () {
+      setState(() {});
+    };
+    for (var controller in _partControllers) {
+      controller.addListener(_partControllerListener);
+    }
+  }
+
   void moreParts() {
     setState(() {
-      parts.add('');
+      _partControllers.add(TextEditingController(text: ''));
+      _partControllers[_partControllers.length - 1]
+          .addListener(_partControllerListener);
     });
   }
 
   void lessParts() {
     setState(() {
-      parts.removeLast();
+      _partControllers[_partControllers.length - 1].dispose();
+      _partControllers.removeLast();
     });
   }
 
-  void setPart(int i, String part) {
-    setState(() {
-      parts[i] = part;
-    });
-  }
+  // void setPart(int i, String part) {
+  //   setState(() {
+  //     _partControllers[i].text = part;
+  //   });
+  // }
 
   int phraseLength() {
     var lengths = <int>[];
     var lcm = 1;
-    for (var part in parts) {
-      if (!lengths.contains(part.length)) {
-        if (part != '') {
-          lengths.add(part.length);
-          lcm *= part.length;
+    for (var part in _partControllers) {
+      if (!lengths.contains(part.text.length)) {
+        if (part.text != '') {
+          lengths.add(part.text.length);
+          lcm *= part.text.length;
         }
       }
     }
@@ -57,11 +75,11 @@ class _GroupingsState extends State<Groupings> {
 
   List<String> getTabs() {
     var length = phraseLength();
-    return parts.map((part) {
-      var repetitions = part == '' ? 1 : length ~/ part.length;
+    return _partControllers.map((part) {
+      var repetitions = part.text == '' ? 1 : length ~/ part.text.length;
       var tab = '';
       while (repetitions > 0) {
-        tab = tab + part;
+        tab = tab + part.text;
         repetitions--;
       }
       return tab;
@@ -82,74 +100,58 @@ class _GroupingsState extends State<Groupings> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text("groupings tabber"),
-          backgroundColor: trimColor,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+            "enter phasing rhythms that are frustrating to play that you need to visualize"),
+        const SizedBox(height: 16.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: moreParts,
+              style: buttonStyle,
+              child: const Text("more parts"),
+            ),
+            const SizedBox(width: 16.0),
+            ElevatedButton(
+              onPressed: lessParts,
+              style: buttonStyle,
+              child: const Text("less parts"),
+            ),
+          ],
         ),
-        body: DefaultTextStyle(
-          style: defaultText,
-          child: Container(
-            padding: const EdgeInsets.all(16.0),
-            color: backgroundColor,
+        const SizedBox(height: 16.0),
+        Expanded(
+          child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                    "enter phasing rhythms that are frustrating to play that you need to visualize"),
+                for (var i = 0; i < _partControllers.length; i++)
+                  TextField(
+                      decoration: InputDecoration(
+                          hintText: "Part ${i + 1}",
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white70),
+                      controller: _partControllers[i]),
                 const SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => setState(() => parts.add("")),
-                      style: buttonStyle,
-                      child: const Text("more parts"),
+                const Text("tabs:"),
+                const SizedBox(height: 8.0),
+                ...getTabs().map((tab) {
+                  return Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: getBeatsAndBarlines(tab),
                     ),
-                    const SizedBox(width: 16.0),
-                    ElevatedButton(
-                      onPressed: () => setState(() => parts.removeLast()),
-                      style: buttonStyle,
-                      child: const Text("less parts"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16.0),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        for (var i = 0; i < parts.length; i++)
-                          TextField(
-                            decoration: InputDecoration(
-                                hintText: "Part ${i + 1}",
-                                border: const OutlineInputBorder(),
-                                filled: true,
-                                fillColor: Colors.white70),
-                            onChanged: (value) => setPart(i, value),
-                            controller: TextEditingController(
-                              text: parts[i],
-                            ),
-                          ),
-                        const SizedBox(height: 16.0),
-                        const Text("tabs:"),
-                        const SizedBox(height: 8.0),
-                        ...getTabs().map((tab) {
-                          return Container(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: getBeatsAndBarlines(tab),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           ),
-        ));
+        ),
+      ],
+    );
   }
 }

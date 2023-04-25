@@ -18,6 +18,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String _currentConceptName = "stickings";
+  Widget _currentConcept = const PossibleStickings();
+  final Map<String, Widget> _concepts = {
+    "groupings tabber": const Groupings(),
+    "stickings": const PossibleStickings()
+  };
+
   BannerAd? _bannerAd;
 
   Future<InitializationStatus> _initGoogleMobileAds() {
@@ -58,9 +65,42 @@ class _MyAppState extends State<MyApp> {
         title: 'Drum Helper',
         home: Scaffold(
             appBar: AppBar(
-              title: const Text("stickings"),
+              title: Text(_currentConceptName),
               backgroundColor: trimColor,
             ),
+            drawer: Drawer(
+                backgroundColor: backgroundColor,
+                child: Builder(
+                    builder: (context) => ListView(
+                          // Important: Remove any padding from the ListView.
+                          padding: EdgeInsets.zero,
+                          children: <Widget>[
+                                const DrawerHeader(
+                                  decoration: BoxDecoration(
+                                    color: trimColor,
+                                  ),
+                                  child: Text('rhythmic concepts:',
+                                      style: defaultText),
+                                )
+                              ] +
+                              _concepts.keys
+                                  .map(
+                                    (conceptName) => ListTile(
+                                      title:
+                                          Text(conceptName, style: defaultText),
+                                      tileColor: backgroundColor,
+                                      onTap: () {
+                                        setState(() => {
+                                              _currentConceptName = conceptName,
+                                              _currentConcept =
+                                                  _concepts[conceptName]!
+                                            });
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  )
+                                  .toList(),
+                        ))),
             body: FutureBuilder<void>(
                 future: _initGoogleMobileAds(),
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
@@ -79,9 +119,9 @@ class _MyAppState extends State<MyApp> {
                                       child: AdWidget(ad: _bannerAd!),
                                     ),
                                   ),
-                                  const PossibleStickings()
+                                  _currentConcept
                                 ])
-                              : const PossibleStickings()));
+                              : _currentConcept));
                 })));
   }
 }
