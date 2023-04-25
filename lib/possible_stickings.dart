@@ -107,107 +107,89 @@ class _PossibleStickingsState extends State<PossibleStickings> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text("stickings"),
-          backgroundColor: trimColor,
-        ),
-        body: DefaultTextStyle(
-          style: defaultText,
-          child: Container(
-            padding: elementPadding,
-            color: backgroundColor,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                    const Text(
-                        "visualize all possible stickings, with some constraints"),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text("length:"),
-                      NumberStepper(
-                          initialValue: stickingLength,
-                          min: 2,
-                          max: 12,
-                          step: 1,
-                          onChanged: (val) => {
-                                setState(() => {stickingLength = val})
-                              }),
-                      const Text("limbs: "),
-                      NumberStepper(
-                          initialValue: sticks.length,
-                          min: 2,
-                          max: stickOptions.length,
-                          step: 1,
-                          onChanged: (val) =>
-                              setState(() => sticks = getSticks(val))),
-                    ]),
-                  ] +
-                  sticks.values
-                      .map((stick) => Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                DropdownButton(
-                                    items: unusedSticks(stick.symbol),
-                                    value: stick.symbol,
-                                    dropdownColor: backgroundColor,
-                                    onChanged: (val) => setState(() {
-                                          sticks.remove(stick.symbol);
-                                          stick.symbol = val ?? stick.symbol;
-                                          sticks.putIfAbsent(
-                                              stick.symbol, () => stick);
-                                        })),
-                                const Text("min: "),
-                                NumberStepper(
-                                    initialValue: stick.minBounces,
-                                    min: 1,
-                                    max: 4,
-                                    step: 1,
-                                    onChanged: (val) =>
-                                        minimumBouncesChanged(val, stick)),
-                                const Text("max: "),
-                                NumberStepper(
-                                    initialValue: stick.maxBounces,
-                                    min: 1,
-                                    max: 4,
-                                    step: 1,
-                                    onChanged: (val) =>
-                                        maximumBouncesChanged(val, stick))
-                              ]))
-                      .toList() +
-                  [
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text("avoid necessary alternation:"),
-                      Switch(
-                          activeColor: trimColor,
-                          value: avoidNecessaryAlternation,
-                          onChanged: (val) => setState(() {
-                                avoidNecessaryAlternation = val;
-                              }))
-                    ]),
-                    const SizedBox(height: 16.0),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            const Text("stickings:"),
-                            const SizedBox(height: 8.0),
-                            ...generateStickings().map((sticking) {
-                              return Container(
-                                padding: elementPadding,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [Text(sticking)],
-                                ),
-                              );
-                            }),
-                          ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+            const Text(
+                "visualize all possible stickings, with some constraints"),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Text("length:"),
+              NumberStepper(
+                  initialValue: stickingLength,
+                  min: 2,
+                  max: 12,
+                  step: 1,
+                  onChanged: (val) => {
+                        setState(() => {stickingLength = val})
+                      }),
+              const Text("limbs: "),
+              NumberStepper(
+                  initialValue: sticks.length,
+                  min: 2,
+                  max: stickOptions.length,
+                  step: 1,
+                  onChanged: (val) => setState(() => sticks = getSticks(val))),
+            ]),
+          ] +
+          sticks.values
+              .map((stick) =>
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    DropdownButton(
+                        items: unusedSticks(stick.symbol),
+                        value: stick.symbol,
+                        dropdownColor: backgroundColor,
+                        onChanged: (val) => setState(() {
+                              sticks.remove(stick.symbol);
+                              stick.symbol = val ?? stick.symbol;
+                              sticks.putIfAbsent(stick.symbol, () => stick);
+                            })),
+                    const Text("min: "),
+                    NumberStepper(
+                        initialValue: stick.minBounces,
+                        min: 1,
+                        max: 4,
+                        step: 1,
+                        onChanged: (val) => minimumBouncesChanged(val, stick)),
+                    const Text("max: "),
+                    NumberStepper(
+                        initialValue: stick.maxBounces,
+                        min: 1,
+                        max: 4,
+                        step: 1,
+                        onChanged: (val) => maximumBouncesChanged(val, stick))
+                  ]))
+              .toList() +
+          [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Text("avoid necessary alternation:"),
+              Switch(
+                  activeColor: trimColor,
+                  value: avoidNecessaryAlternation,
+                  onChanged: (val) => setState(() {
+                        avoidNecessaryAlternation = val;
+                      }))
+            ]),
+            const SizedBox(height: 16.0),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Text("stickings:"),
+                    const SizedBox(height: 8.0),
+                    ...generateStickings().map((sticking) {
+                      return Container(
+                        padding: elementPadding,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [Text(sticking)],
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
+                ),
+              ),
             ),
-          ),
-        ));
+          ],
+    );
   }
 }

@@ -4,6 +4,9 @@
         android:label="rhythm_practice_helper"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-7498831417465381~8149682019"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
