@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   wakelock: ^0.6.2
   google_mobile_ads: ^1.2.0
+  expandable: ^5.0.1
 
 dev_dependencies:
   flutter_test:
