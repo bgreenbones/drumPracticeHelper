@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:rhythm_practice_helper/ad_helper.dart';
+import 'package:rhythm_practice_helper/reference_points.dart';
 import 'package:rhythm_practice_helper/styles.dart';
 import 'possible_stickings.dart';
 import 'groupings.dart';
@@ -22,7 +23,8 @@ class _MyAppState extends State<MyApp> {
   Widget _currentConcept = const PossibleStickings();
   final Map<String, Widget> _concepts = {
     "groupings tabber": const Groupings(),
-    "stickings": const PossibleStickings()
+    "stickings": const PossibleStickings(),
+    "reference points": const ReferencePoints()
   };
 
   BannerAd? _bannerAd;

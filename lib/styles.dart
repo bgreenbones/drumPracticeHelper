@@ -11,9 +11,10 @@ const TextStyle defaultText = TextStyle(
 const elementPadding = EdgeInsets.all(2.0);
 
 const TextStyle barMarker =
-    TextStyle(fontWeight: FontWeight.w900, color: Colors.greenAccent);
+    TextStyle(fontWeight: FontWeight.w900, color: Colors.green);
 const TextStyle beatMarker =
     TextStyle(fontWeight: FontWeight.bold, color: Colors.cyan);
+const TextStyle groupingMarker = TextStyle(color: Colors.deepOrange);
 
 ButtonStyle buttonStyle =
     ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(trimColor));
