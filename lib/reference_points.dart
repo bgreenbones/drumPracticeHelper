@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/time_settings.dart';
 import 'styles.dart';
 
 class ReferencePoints extends StatefulWidget {
@@ -46,19 +47,11 @@ class _ReferencePointsState extends State<ReferencePoints> {
       }
     } while (!newLine(j));
     return result;
-    // return phrase.split('').asMap().entries.map((entry) {
-    //   var i = entry.key;
-    //   var c = entry.value;
-    //   return newLine(i)
-    //       ? Text("\n$c", style: getDivisionMarker(i))
-    //       : Text(c, style: getDivisionMarker(i));
-    // }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: getReferencePoints(phraseText));
+        children: [const TimeSettings(), ...getReferencePoints(phraseText)]);
   }
 }
