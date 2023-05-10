@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
 import 'styles.dart';
+import 'rhythmic_constraint.dart';
 import 'package:expandable/expandable.dart';
+import 'stickings.dart';
 
 class PossibleStickings extends StatefulWidget {
   const PossibleStickings({super.key});
 
   @override
-  _PossibleStickingsState createState() => _PossibleStickingsState();
+  PossibleStickingsState createState() => PossibleStickingsState();
 }
 
-class Stick {
-  Stick({required this.symbol, this.maxBounces = 2, this.minBounces = 1});
-  String symbol;
-  int maxBounces;
-  int minBounces;
-}
-
-class _PossibleStickingsState extends State<PossibleStickings> {
+class PossibleStickingsState extends State<PossibleStickings> {
   bool shuffle = false;
+  Map<String, Stick> sticks = {
+    for (String s in ['R', 'L']) s: Stick(symbol: s)
+  };
+
+  int stickingLength = 6;
+  bool avoidNecessaryAlternation = true;
+  int maxNumberOfStickings = -1;
+  late RhythmicConstraint rhythmicConstraint;
+  bool applyRhythmicConstraint = false;
+
   List<String> stickOptions = ['R', 'L', 'K', 'H'];
   List<DropdownMenuItem<String>> unusedSticks(String currentValue) {
     List<String> usedSticks = sticks.keys.toList();
@@ -39,65 +44,6 @@ class _PossibleStickingsState extends State<PossibleStickings> {
       for (String s in stickOptions.sublist(0, numberOfSticks))
         s: Stick(symbol: s)
     };
-  }
-
-  Map<String, Stick> sticks = {
-    for (String s in ['R', 'L']) s: Stick(symbol: s)
-  };
-
-  int stickingLength = 6;
-  bool avoidNecessaryAlternation = true;
-
-  List<String> generateStickings([String partialSticking = '']) {
-    List<String> possibleStickings = [];
-
-    if (partialSticking.length == stickingLength) {
-      if (avoidNecessaryAlternation &&
-          partialSticking[0] == partialSticking[partialSticking.length - 1]) {
-        int beginningBounceLength = 1;
-        int endingBounceLength = 1;
-
-        while (beginningBounceLength < partialSticking.length &&
-            partialSticking[beginningBounceLength] == partialSticking[0]) {
-          beginningBounceLength++;
-        }
-        while (endingBounceLength < partialSticking.length &&
-            partialSticking[partialSticking.length - 1 - endingBounceLength] ==
-                partialSticking[partialSticking.length - 1]) {
-          endingBounceLength++;
-        }
-
-        if (beginningBounceLength + endingBounceLength >
-            sticks[partialSticking[0]]!.maxBounces) {
-          return [];
-        }
-      }
-      return [partialSticking];
-    }
-    if (partialSticking.length > stickingLength) {
-      return [];
-    }
-
-    List<Stick> potentialSticks = partialSticking.isEmpty
-        ? sticks.values.toList()
-        : sticks.values
-            .toList()
-            .where((stick) =>
-                stick.symbol != partialSticking[partialSticking.length - 1])
-            .toList();
-    for (Stick stick in potentialSticks) {
-      for (int bounces = stick.minBounces;
-          bounces <= stick.maxBounces;
-          bounces++) {
-        String sticking = partialSticking + stick.symbol * bounces;
-        possibleStickings += generateStickings(sticking);
-      }
-    }
-
-    if (partialSticking == '' && shuffle) {
-      possibleStickings.shuffle();
-    }
-    return possibleStickings;
   }
 
   void minimumBouncesChanged(int val, Stick stick) {
@@ -191,13 +137,26 @@ class _PossibleStickingsState extends State<PossibleStickings> {
                                 onChanged: (val) => setState(() {
                                       avoidNecessaryAlternation = val;
                                     })),
-                            TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    shuffle = true;
-                                  });
-                                },
-                                child: const Text('shuffle'))
+                            const Text('shuffle:'),
+                            Switch(
+                                activeColor: trimColor,
+                                value: avoidNecessaryAlternation,
+                                onChanged: (val) => setState(() {
+                                      shuffle = val;
+                                    }))
+                          ]),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("stickings:"),
+                            NumberStepper(
+                                initialValue: maxNumberOfStickings,
+                                min: -1,
+                                max: 20,
+                                step: 1,
+                                onChanged: (val) => setState(() {
+                                      maxNumberOfStickings = val;
+                                    })),
                           ]),
                     ])),
         const SizedBox(height: 16.0),
@@ -205,7 +164,7 @@ class _PossibleStickingsState extends State<PossibleStickings> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                ...generateStickings().map((sticking) {
+                ...generateStickings(this).map((sticking) {
                   return Container(
                     padding: elementPadding,
                     child: Row(
