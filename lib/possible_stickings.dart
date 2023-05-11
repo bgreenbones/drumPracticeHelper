@@ -21,6 +21,14 @@ class PossibleStickingsState extends State<PossibleStickings> {
   int stickingLength = 6;
   bool avoidNecessaryAlternation = true;
   int maxNumberOfStickings = -1;
+  bool generateRandomStickings() {
+    return maxNumberOfStickings >= 0;
+  }
+
+  bool generateAllStickings() {
+    return !generateRandomStickings();
+  }
+
   late RhythmicConstraint rhythmicConstraint;
   bool applyRhythmicConstraint = false;
 
@@ -140,7 +148,7 @@ class PossibleStickingsState extends State<PossibleStickings> {
                             const Text('shuffle:'),
                             Switch(
                                 activeColor: trimColor,
-                                value: avoidNecessaryAlternation,
+                                value: shuffle || generateRandomStickings(),
                                 onChanged: (val) => setState(() {
                                       shuffle = val;
                                     }))

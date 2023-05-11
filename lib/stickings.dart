@@ -22,6 +22,24 @@ bool rhythmicHitRequired(PossibleStickingsState state, String partialSticking) {
       : false;
 }
 
+List<Stick> getPotentialSticks(
+    PossibleStickingsState state, String partialSticking) {
+  String lastUsed = partialSticking.isNotEmpty
+      ? partialSticking[partialSticking.length - 1]
+      : '';
+  List<Stick> stickOptions = rhythmicHitRequired(state, partialSticking)
+      ? state.rhythmicConstraint.sticks
+      : state.sticks.values.toList();
+  List<Stick> potentialSticks = partialSticking.isEmpty
+      ? stickOptions
+      : stickOptions
+          .where((stick) =>
+              stick.symbol != lastUsed &&
+              stick.minBounces <= maxBouncesInContext(state, partialSticking))
+          .toList();
+  return potentialSticks;
+}
+
 List<String> generateRandomStickings(PossibleStickingsState state) {
   List<String> stickings = [];
   final random = Random();
@@ -31,15 +49,7 @@ List<String> generateRandomStickings(PossibleStickingsState state) {
     String sticking = '';
     bool failure = false;
     while (sticking.length < state.stickingLength) {
-      String lastUsed = '';
-      List<Stick> potentialSticks = sticking.isEmpty
-          ? state.sticks.values.toList()
-          : state.sticks.values
-              .toList()
-              .where((stick) =>
-                  stick.symbol != lastUsed &&
-                  stick.minBounces <= maxBouncesInContext(state, sticking))
-              .toList();
+      List<Stick> potentialSticks = getPotentialSticks(state, sticking);
       if (potentialSticks.isEmpty) {
         failure = true;
         break;
