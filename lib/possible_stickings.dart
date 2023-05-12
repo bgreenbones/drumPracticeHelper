@@ -79,7 +79,7 @@ class PossibleStickingsState extends State<PossibleStickings> {
                 child: Text("sticking constraints")),
             collapsed: Column(),
             expanded: Column(
-                children: [
+                children: <Widget>[
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -134,7 +134,7 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                           maximumBouncesChanged(val, stick))
                                 ]))
                         .toList() +
-                    [
+                    <Widget>[
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -166,6 +166,10 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                       maxNumberOfStickings = val;
                                     })),
                           ]),
+                      RhythmicConstraintWidget(
+                          constraint: RhythmicConstraint(
+                              sticks: [sticks.values.toList()[0]],
+                              rhythmLength: stickingLength)),
                     ])),
         const SizedBox(height: 16.0),
         Expanded(

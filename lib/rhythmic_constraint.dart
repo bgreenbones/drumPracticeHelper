@@ -1,11 +1,14 @@
 import "package:flutter/material.dart";
 import "package:rhythm_practice_helper/styles.dart";
-
 import "stickings.dart";
 
 class RhythmicConstraint {
-  List<Stick> sticks = [];
-  List<bool> rhythm = [];
+  RhythmicConstraint({required this.sticks, required rhythmLength}) {
+    rhythm = List<bool>.generate(rhythmLength, (i) => false);
+  }
+  List<Stick> sticks;
+  late List<bool> rhythm;
+
   int subdivisionsUntilNextHit(int currentSubdivision) {
     if (currentSubdivision >= rhythm.length) {
       return -1;
@@ -20,8 +23,8 @@ class RhythmicConstraint {
 }
 
 class RhythmicConstraintWidget extends StatefulWidget {
-  final int rhythmLength;
-  const RhythmicConstraintWidget({super.key, required this.rhythmLength});
+  final RhythmicConstraint constraint;
+  const RhythmicConstraintWidget({super.key, required this.constraint});
 
   @override
   RhythmicConstraintWidgetState createState() =>
@@ -29,15 +32,16 @@ class RhythmicConstraintWidget extends StatefulWidget {
 }
 
 class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
-  RhythmicConstraint constraint = RhythmicConstraint();
+  RhythmicConstraintWidgetState();
 
   List<IconButton> getRhythmButtons() {
     List<IconButton> result = [];
-    for (int i = 0; i < constraint.rhythm.length; i++) {
+    for (int i = 0; i < widget.constraint.rhythm.length; i++) {
       result.add(IconButton(
           icon: Icon(Icons.widgets,
-              color: constraint.rhythm[i] ? trimColor : Colors.grey),
-          onPressed: () => {constraint.rhythm[i] = !constraint.rhythm[i]}));
+              color: widget.constraint.rhythm[i] ? trimColor : Colors.grey),
+          onPressed: () => setState(() =>
+              {widget.constraint.rhythm[i] = !widget.constraint.rhythm[i]})));
     }
     return result;
   }
