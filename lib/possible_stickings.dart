@@ -29,7 +29,9 @@ class PossibleStickingsState extends State<PossibleStickings> {
     return !generateRandomStickings();
   }
 
-  late RhythmicConstraint rhythmicConstraint;
+  late RhythmicConstraint rhythmicConstraint = RhythmicConstraint(
+      sticks: sticks.values.toList(),
+      rhythm: List<bool>.generate(stickingLength, (index) => false));
   bool applyRhythmicConstraint = false;
 
   List<String> stickOptions = ['R', 'L', 'K', 'H'];
@@ -64,6 +66,13 @@ class PossibleStickingsState extends State<PossibleStickings> {
         stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
   }
 
+  void stickingLengthChanged(val) {
+    setState(() => {
+          stickingLength = val,
+          rhythmicConstraint.rhythmLength = stickingLength
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -89,9 +98,7 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                 min: 2,
                                 max: 12,
                                 step: 1,
-                                onChanged: (val) => {
-                                      setState(() => {stickingLength = val})
-                                    }),
+                                onChanged: stickingLengthChanged),
                             const Text("limbs: "),
                             NumberStepper(
                                 initialValue: sticks.length,
@@ -167,9 +174,12 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                     })),
                           ]),
                       RhythmicConstraintWidget(
-                          constraint: RhythmicConstraint(
-                              sticks: [sticks.values.toList()[0]],
-                              rhythmLength: stickingLength)),
+                          availableSticks: sticks.values.toList(),
+                          constraint: rhythmicConstraint,
+                          onSticksChanged: (newSticks) => setState(
+                              () => {rhythmicConstraint.sticks = newSticks}),
+                          onRhythmChanged: (i, hitOrNot) => setState(
+                              () => {rhythmicConstraint.rhythm[i] = hitOrNot})),
                     ])),
         const SizedBox(height: 16.0),
         Expanded(
