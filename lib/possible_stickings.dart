@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
+import 'limb_settings.dart';
 import 'styles.dart';
 import 'rhythmic_constraint.dart';
 import 'package:expandable/expandable.dart';
@@ -14,14 +15,7 @@ class PossibleStickings extends StatefulWidget {
 
 class PossibleStickingsState extends State<PossibleStickings> {
   bool shuffle = false;
-  List<Stick> availableSticks = [
-    for (String s in ['R', 'L', 'K', 'H']) Stick(symbol: s)
-  ];
-  late List<Stick> usingSticks = availableSticks
-      .where((stick) => ['R', 'L'].contains(stick.symbol))
-      .toList();
-  Map<String, Stick> get stickMap =>
-      {for (Stick s in availableSticks) s.symbol: s};
+  Limbs limbs = Limbs();
 
   int stickingLength = 6;
   bool avoidNecessaryAlternation = true;
@@ -35,7 +29,6 @@ class PossibleStickingsState extends State<PossibleStickings> {
   }
 
   late RhythmicConstraint rhythmicConstraint = RhythmicConstraint(
-      availableSticks: availableSticks,
       rhythm: List<bool>.generate(stickingLength, (index) => false));
   bool applyRhythmicConstraint = false;
 
@@ -45,15 +38,10 @@ class PossibleStickingsState extends State<PossibleStickings> {
               value: currentValue,
               child: Text(currentValue, style: defaultText))
         ] +
-        availableSticks
-            .where((s) => !usingSticks.contains(s))
+        limbs.unusedSticks
             .map((s) => DropdownMenuItem(
                 value: s.symbol, child: Text(s.symbol, style: defaultText)))
             .toList();
-  }
-
-  List<Stick> getSticks(int numberOfSticks) {
-    return availableSticks.sublist(0, numberOfSticks);
   }
 
   void minimumBouncesChanged(int val, Stick stick) {
@@ -101,15 +89,15 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                 onChanged: stickingLengthChanged),
                             const Text("limbs"),
                             NumberStepper(
-                                initialValue: usingSticks.length,
+                                initialValue: limbs.usingSticks.length,
                                 min: 2,
-                                max: availableSticks.length,
+                                max: limbs.availableSticks.length,
                                 step: 1,
-                                onChanged: (val) => setState(
-                                    () => usingSticks = getSticks(val))),
+                                onChanged: (val) => setState(() => limbs
+                                    .usingSticks = limbs.getSomeSticks(val))),
                           ]),
                     ] +
-                    usingSticks
+                    limbs.usingSticks
                         .map((stick) => Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -118,31 +106,59 @@ class PossibleStickingsState extends State<PossibleStickings> {
                                       value: stick.symbol,
                                       dropdownColor: backgroundColor,
                                       onChanged: (val) => setState(() {
-                                            usingSticks.remove(stick);
+                                            limbs.usingSticks.remove(stick);
                                             Stick replacement =
-                                                stickMap[val] ?? stick;
+                                                limbs.stickMap[val] ?? stick;
                                             replacement.maxBounces =
                                                 stick.maxBounces;
                                             replacement.minBounces =
                                                 stick.minBounces;
-                                            usingSticks.add(replacement);
+                                            limbs.usingSticks.add(replacement);
                                           })),
-                                  const Text("min"),
-                                  NumberStepper(
-                                      initialValue: stick.minBounces,
+                                  // const Text("min"),
+                                  // NumberStepper(
+                                  //     initialValue: stick.minBounces,
+                                  //     min: 1,
+                                  //     max: 4,
+                                  //     step: 1,
+                                  //     onChanged: (val) =>
+                                  //         minimumBouncesChanged(val, stick)),
+                                  // const Text("max"),
+                                  // NumberStepper(
+                                  //     initialValue: stick.maxBounces,
+                                  //     min: 1,
+                                  //     max: 4,
+                                  //     step: 1,
+                                  //     onChanged: (val) =>
+                                  //         maximumBouncesChanged(val, stick))
+                                  // Text("${stick.minBounces}"),
+                                  RangeSlider(
                                       min: 1,
                                       max: 4,
-                                      step: 1,
-                                      onChanged: (val) =>
-                                          minimumBouncesChanged(val, stick)),
-                                  const Text("max"),
-                                  NumberStepper(
-                                      initialValue: stick.maxBounces,
-                                      min: 1,
-                                      max: 4,
-                                      step: 1,
-                                      onChanged: (val) =>
-                                          maximumBouncesChanged(val, stick))
+                                      divisions: 4 - 1,
+                                      labels: RangeLabels("${stick.minBounces}",
+                                          "${stick.maxBounces}"),
+                                      activeColor: trimColor,
+                                      values: RangeValues(
+                                          stick.minBounces.toDouble(),
+                                          stick.maxBounces.toDouble()),
+                                      onChanged: (rangeValue) => {
+                                            if (rangeValue.start !=
+                                                stick.minBounces)
+                                              {
+                                                minimumBouncesChanged(
+                                                    rangeValue.start.toInt(),
+                                                    stick)
+                                              },
+                                            if (rangeValue.end !=
+                                                stick.maxBounces)
+                                              {
+                                                maximumBouncesChanged(
+                                                    rangeValue.end.toInt(),
+                                                    stick)
+                                              }
+                                          }),
+                                  // Text("${stick.maxBounces}"),
                                 ]))
                         .toList() +
                     <Widget>[
@@ -169,7 +185,7 @@ class PossibleStickingsState extends State<PossibleStickings> {
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text("stickings:"),
+                            const Text("stickings"),
                             NumberStepper(
                                 initialValue: maxNumberOfStickings,
                                 min: -1,
@@ -183,10 +199,9 @@ class PossibleStickingsState extends State<PossibleStickings> {
                           activated: applyRhythmicConstraint,
                           onActivation: (activated) => setState(
                               () => {applyRhythmicConstraint = activated}),
-                          availableSticks: availableSticks,
                           constraint: rhythmicConstraint,
-                          onSticksChanged: (stick, useOrNot) => setState(() =>
-                              {rhythmicConstraint.sticks[stick] = useOrNot}),
+                          onSticksChanged: (stick, useOrNot) =>
+                              setState(() => {stick.inUse = useOrNot}),
                           onRhythmChanged: (i, hitOrNot) => setState(
                               () => {rhythmicConstraint.rhythm[i] = hitOrNot})),
                     ])),

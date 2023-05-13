@@ -1,20 +1,6 @@
+import "limb_settings.dart";
 import "possible_stickings.dart";
-import "dart:math";
-
-class Stick {
-  Stick({required this.symbol, this.maxBounces = 2, this.minBounces = 1});
-  String symbol;
-  int maxBounces;
-  int minBounces;
-
-  @override
-  bool operator ==(Object b) {
-    return b is Stick && symbol == b.symbol;
-  }
-
-  @override
-  int get hashCode => symbol.hashCode;
-}
+import "dart:math" show Random, min;
 
 int maxBouncesInContext(PossibleStickingsState state, String partialSticking) {
   int subdivisionsLeft = state.applyRhythmicConstraint
@@ -36,8 +22,8 @@ List<Stick> getPotentialSticks(
       ? partialSticking[partialSticking.length - 1]
       : '';
   List<Stick> usingSticks = rhythmicHitRequired(state, partialSticking)
-      ? state.rhythmicConstraint.usingSticks
-      : state.usingSticks;
+      ? state.rhythmicConstraint.limbs.usingSticks
+      : state.limbs.usingSticks;
   List<Stick> potentialSticks = partialSticking.isEmpty
       ? usingSticks
       : usingSticks
@@ -109,7 +95,7 @@ List<String> generateStickings(PossibleStickingsState state,
       }
 
       if (beginningBounceLength + endingBounceLength >
-          state.stickMap[partialSticking[0]]!.maxBounces) {
+          state.limbs.stickMap[partialSticking[0]]!.maxBounces) {
         return [];
       }
     }
