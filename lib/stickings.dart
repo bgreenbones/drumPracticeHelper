@@ -6,6 +6,14 @@ class Stick {
   String symbol;
   int maxBounces;
   int minBounces;
+
+  @override
+  bool operator ==(Object b) {
+    return b is Stick && symbol == b.symbol;
+  }
+
+  @override
+  int get hashCode => symbol.hashCode;
 }
 
 int maxBouncesInContext(PossibleStickingsState state, String partialSticking) {
@@ -27,12 +35,12 @@ List<Stick> getPotentialSticks(
   String lastUsed = partialSticking.isNotEmpty
       ? partialSticking[partialSticking.length - 1]
       : '';
-  List<Stick> stickOptions = rhythmicHitRequired(state, partialSticking)
-      ? state.rhythmicConstraint.sticks
-      : state.sticks.values.toList();
+  List<Stick> usingSticks = rhythmicHitRequired(state, partialSticking)
+      ? state.rhythmicConstraint.usingSticks
+      : state.usingSticks;
   List<Stick> potentialSticks = partialSticking.isEmpty
-      ? stickOptions
-      : stickOptions
+      ? usingSticks
+      : usingSticks
           .where((stick) =>
               stick.symbol != lastUsed &&
               stick.minBounces <= maxBouncesInContext(state, partialSticking))
@@ -101,7 +109,7 @@ List<String> generateStickings(PossibleStickingsState state,
       }
 
       if (beginningBounceLength + endingBounceLength >
-          state.sticks[partialSticking[0]]!.maxBounces) {
+          state.stickMap[partialSticking[0]]!.maxBounces) {
         return [];
       }
     }
@@ -111,17 +119,11 @@ List<String> generateStickings(PossibleStickingsState state,
     return [];
   }
 
-  List<Stick> potentialSticks = partialSticking.isEmpty
-      ? state.sticks.values.toList()
-      : state.sticks.values
-          .toList()
-          .where((stick) =>
-              stick.symbol != partialSticking[partialSticking.length - 1])
-          .toList();
+  List<Stick> potentialSticks = getPotentialSticks(state, partialSticking);
   for (Stick stick in potentialSticks) {
-    for (int bounces = stick.minBounces;
-        bounces <= stick.maxBounces;
-        bounces++) {
+    int maxBounces =
+        min(stick.maxBounces, maxBouncesInContext(state, partialSticking));
+    for (int bounces = stick.minBounces; bounces <= maxBounces; bounces++) {
       String sticking = partialSticking + stick.symbol * bounces;
       possibleStickings += generateStickings(state, sticking);
     }

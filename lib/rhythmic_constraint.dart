@@ -4,12 +4,18 @@ import "stickings.dart";
 
 class RhythmicConstraint {
   RhythmicConstraint({
-    required this.sticks,
+    required this.availableSticks,
     required this.rhythm,
-  });
+  }) {
+    sticks = {for (Stick stick in availableSticks) stick: false};
+  }
 
-  List<Stick> sticks;
+  final List<Stick> availableSticks;
+  late Map<Stick, bool> sticks;
   List<bool> rhythm;
+
+  List<Stick> get usingSticks =>
+      availableSticks.where((stick) => sticks[stick] ?? false).toList();
 
   set rhythmLength(rhythmLength) {
     rhythm = List<bool>.generate(
@@ -21,7 +27,7 @@ class RhythmicConstraint {
       return -1;
     }
     for (int i = 0; i < rhythm.length; i++) {
-      if (rhythm[i] && i >= currentSubdivision) {
+      if (rhythm[i] && i > currentSubdivision) {
         return i - currentSubdivision;
       }
     }
@@ -32,10 +38,15 @@ class RhythmicConstraint {
 class RhythmicConstraintWidget extends StatefulWidget {
   final RhythmicConstraint constraint;
   final List<Stick> availableSticks;
-  final Function(List<Stick>) onSticksChanged;
+  final Function(Stick, bool) onSticksChanged;
   final Function(int, bool) onRhythmChanged;
+  final bool activated;
+  final Function(bool) onActivation;
+
   const RhythmicConstraintWidget(
       {super.key,
+      required this.activated,
+      required this.onActivation,
       required this.constraint,
       required this.availableSticks,
       required this.onRhythmChanged,
@@ -51,14 +62,19 @@ class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
 
   List<TextButton> getStickButtons() {
     List<TextButton> result = [];
-    for (int i = 0; i < widget.availableSticks.length; i++) {
+    for (Stick stick in widget.availableSticks) {
       result.add(TextButton(
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
-                  widget.constraint.rhythm[i] ? trimColor : Colors.grey)),
-          onPressed: () =>
-              widget.onRhythmChanged(i, !widget.constraint.rhythm[i]),
-          child: Text(widget.availableSticks[i].symbol)));
+                  widget.constraint.sticks[stick] ?? false
+                      ? trimColor
+                      : darkGrey)),
+          onPressed: () => widget.onSticksChanged(
+              stick, !(widget.constraint.sticks[stick] ?? true)),
+          child: Text(
+            stick.symbol,
+            style: defaultText,
+          )));
     }
     return result;
   }
@@ -77,13 +93,24 @@ class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[const Text("assign:")] + getStickButtons()),
-      Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: getRhythmButtons())
-    ]);
+    return Column(
+      children: [
+        Row(children: [
+          const Text("rhythmic constraint:"),
+          Switch(
+            activeColor: trimColor,
+            inactiveTrackColor: darkGrey,
+            value: widget.activated,
+            onChanged: widget.onActivation,
+          )
+        ]),
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[const Text("assign:")] + getStickButtons()),
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: getRhythmButtons())
+      ],
+    );
   }
 }
