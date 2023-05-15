@@ -1,3 +1,7 @@
+import 'package:expandable/expandable.dart';
+import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/styles.dart';
+
 class Stick {
   Stick(
       {required this.symbol,
@@ -25,9 +29,9 @@ class Limbs {
   Stick hat = Stick(symbol: 'H', maxBounces: 1, minBounces: 1, inUse: false);
 
   late List<Stick> availableSticks = [right, left, kick, hat];
-  late List<Stick> usingSticks =
+  List<Stick> get usingSticks =>
       availableSticks.where((element) => element.inUse).toList();
-  late List<Stick> unusedSticks =
+  List<Stick> get unusedSticks =>
       availableSticks.where((element) => !element.inUse).toList();
 
   Map<String, Stick> get stickMap =>
@@ -35,5 +39,118 @@ class Limbs {
 
   List<Stick> getSomeSticks(int numberOfSticks) {
     return availableSticks.sublist(0, numberOfSticks);
+  }
+}
+
+class LimbsSettingsWidget extends StatefulWidget {
+  final Limbs limbs;
+  final Function(Limbs) onLimbsChanged;
+
+  const LimbsSettingsWidget({
+    super.key,
+    required this.limbs,
+    required this.onLimbsChanged,
+  });
+
+  @override
+  LimbsSettingsWidgetState createState() => LimbsSettingsWidgetState();
+}
+
+class LimbsSettingsWidgetState extends State<LimbsSettingsWidget> {
+  late Limbs limbs = widget.limbs;
+
+  bool expanded = false;
+  late ExpandableController limbsSettingsController = ExpandableController(
+    initialExpanded: expanded,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    limbsSettingsController.addListener(() {
+      expanded = !expanded;
+    });
+  }
+
+  @override
+  void setState(Function fn) {
+    fn();
+    widget.onLimbsChanged(limbs);
+  }
+
+  void onSticksChanged(Stick stick, bool useOrNot) {
+    setState(() => {stick.inUse = useOrNot});
+  }
+
+  void minimumBouncesChanged(int val, Stick stick) {
+    setState(() =>
+        stick.minBounces = val <= stick.maxBounces ? val : stick.minBounces);
+  }
+
+  void maximumBouncesChanged(int val, Stick stick) {
+    setState(() =>
+        stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return getExpandable(
+        const Text("limbs settings"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(children: [
+              for (Stick stick in limbs.availableSticks)
+                Row(
+                  children: [
+                    TextButton(
+                        style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                stick.inUse ? trimColor : darkGrey)),
+                        onPressed: () => onSticksChanged(stick, !(stick.inUse)),
+                        child: Text(
+                          stick.symbol,
+                          style: defaultText,
+                        )),
+                    RangeSlider(
+                        min: 1,
+                        max: 4,
+                        divisions: 4 - 1,
+                        labels: RangeLabels(
+                            "${stick.minBounces}", "${stick.maxBounces}"),
+                        activeColor: trimColor,
+                        values: RangeValues(stick.minBounces.toDouble(),
+                            stick.maxBounces.toDouble()),
+                        onChanged: (rangeValue) => {
+                              if (rangeValue.start != stick.minBounces)
+                                {
+                                  minimumBouncesChanged(
+                                      rangeValue.start.toInt(), stick)
+                                },
+                              if (rangeValue.end != stick.maxBounces)
+                                {
+                                  maximumBouncesChanged(
+                                      rangeValue.end.toInt(), stick)
+                                }
+                            })
+                  ],
+                )
+            ])
+          ],
+        ),
+        collapsed:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          for (Stick stick in limbs.availableSticks)
+            TextButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        stick.inUse ? trimColor : darkGrey)),
+                onPressed: () => onSticksChanged(stick, !(stick.inUse)),
+                child: Text(
+                  stick.symbol,
+                  style: defaultText,
+                ))
+        ]),
+        controller: limbsSettingsController);
   }
 }

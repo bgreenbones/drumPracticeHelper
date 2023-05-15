@@ -1,15 +1,18 @@
+import "package:expandable/expandable.dart";
 import "package:flutter/material.dart";
 import "package:rhythm_practice_helper/styles.dart";
 import "limb_settings.dart";
-import "stickings.dart";
 
 class RhythmicConstraint {
   RhythmicConstraint({
-    required this.rhythm,
-  });
+    required int rhythmLength,
+  }) {
+    rhythm = List<bool>.generate(rhythmLength, (i) => false);
+  }
 
   Limbs limbs = Limbs();
-  List<bool> rhythm;
+  late List<bool> rhythm;
+  bool active = false;
 
   set rhythmLength(rhythmLength) {
     rhythm = List<bool>.generate(
@@ -30,19 +33,11 @@ class RhythmicConstraint {
 }
 
 class RhythmicConstraintWidget extends StatefulWidget {
+  final Function(RhythmicConstraint) onChanged;
   final RhythmicConstraint constraint;
-  final Function(Stick, bool) onSticksChanged;
-  final Function(int, bool) onRhythmChanged;
-  final bool activated;
-  final Function(bool) onActivation;
 
   const RhythmicConstraintWidget(
-      {super.key,
-      required this.activated,
-      required this.onActivation,
-      required this.constraint,
-      required this.onRhythmChanged,
-      required this.onSticksChanged});
+      {super.key, required this.constraint, required this.onChanged});
 
   @override
   RhythmicConstraintWidgetState createState() =>
@@ -50,16 +45,37 @@ class RhythmicConstraintWidget extends StatefulWidget {
 }
 
 class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
-  RhythmicConstraintWidgetState();
+  late RhythmicConstraint constraint = widget.constraint;
+
+  bool expanded = false;
+  late ExpandableController rhythmicConstraintController = ExpandableController(
+    initialExpanded: expanded,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    rhythmicConstraintController.addListener(() {
+      expanded = !expanded;
+    });
+  }
+
+  @override
+  void setState(Function fn) {
+    fn();
+    widget.onChanged(constraint);
+  }
 
   List<TextButton> getStickButtons() {
     List<TextButton> result = [];
-    for (Stick stick in widget.constraint.limbs.availableSticks) {
+    for (Stick stick in constraint.limbs.availableSticks) {
       result.add(TextButton(
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
                   stick.inUse ? trimColor : darkGrey)),
-          onPressed: () => widget.onSticksChanged(stick, !(stick.inUse)),
+          onPressed: () => setState(() {
+                stick.inUse = !(stick.inUse);
+              }),
           child: Text(
             stick.symbol,
             style: defaultText,
@@ -70,36 +86,40 @@ class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
 
   List<IconButton> getRhythmButtons() {
     List<IconButton> result = [];
-    for (int i = 0; i < widget.constraint.rhythm.length; i++) {
+    for (int i = 0; i < constraint.rhythm.length; i++) {
       result.add(IconButton(
           icon: Icon(Icons.circle,
-              color: widget.constraint.rhythm[i] ? trimColor : Colors.grey),
+              color: constraint.rhythm[i] ? trimColor : Colors.grey),
           onPressed: () =>
-              widget.onRhythmChanged(i, !widget.constraint.rhythm[i])));
+              setState(() => {constraint.rhythm[i] = !constraint.rhythm[i]})));
     }
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
+    return getExpandable(
         Row(children: [
           const Text("rhythmic constraint"),
           Switch(
-            activeColor: trimColor,
-            inactiveTrackColor: darkGrey,
-            value: widget.activated,
-            onChanged: widget.onActivation,
-          )
+              activeColor: trimColor,
+              inactiveTrackColor: darkGrey,
+              value: constraint.active,
+              onChanged: (val) => setState(() {
+                    constraint.active = val;
+                  }))
         ]),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[const Text("assign")] + getStickButtons()),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: getRhythmButtons())
-      ],
-    );
+        Column(children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: getRhythmButtons()),
+          LimbsSettingsWidget(
+            limbs: constraint.limbs,
+            onLimbsChanged: (l) => setState(() {
+              constraint.limbs = l;
+            }),
+          ),
+        ]),
+        controller: rhythmicConstraintController);
   }
 }

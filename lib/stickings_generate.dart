@@ -1,23 +1,23 @@
+import "package:rhythm_practice_helper/stickings_settings.dart";
 import "limb_settings.dart";
-import "possible_stickings.dart";
 import "dart:math" show Random, min;
 
-int maxBouncesInContext(PossibleStickingsState state, String partialSticking) {
-  int subdivisionsLeft = state.applyRhythmicConstraint
+int maxBouncesInContext(StickingsSettings state, String partialSticking) {
+  int subdivisionsLeft = state.rhythmicConstraint.active
       ? state.rhythmicConstraint
           .subdivisionsUntilNextHit(partialSticking.length)
       : state.stickingLength - partialSticking.length;
   return subdivisionsLeft;
 }
 
-bool rhythmicHitRequired(PossibleStickingsState state, String partialSticking) {
-  return state.applyRhythmicConstraint
+bool rhythmicHitRequired(StickingsSettings state, String partialSticking) {
+  return state.rhythmicConstraint.active
       ? state.rhythmicConstraint.rhythm[partialSticking.length]
       : false;
 }
 
 List<Stick> getPotentialSticks(
-    PossibleStickingsState state, String partialSticking) {
+    StickingsSettings state, String partialSticking) {
   String lastUsed = partialSticking.isNotEmpty
       ? partialSticking[partialSticking.length - 1]
       : '';
@@ -34,7 +34,7 @@ List<Stick> getPotentialSticks(
   return potentialSticks;
 }
 
-List<String> generateRandomStickings(PossibleStickingsState state) {
+List<String> generateRandomStickings(StickingsSettings state) {
   List<String> stickings = [];
   final random = Random();
   int failures = 0;
@@ -71,7 +71,7 @@ List<String> generateRandomStickings(PossibleStickingsState state) {
   return stickings;
 }
 
-List<String> generateStickings(PossibleStickingsState state,
+List<String> generateStickings(StickingsSettings state,
     [String partialSticking = '']) {
   if (state.maxNumberOfStickings > -1) {
     return generateRandomStickings(state);
