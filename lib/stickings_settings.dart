@@ -1,43 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
+import 'package:rhythm_practice_helper/settings_widget.dart';
 import 'limb_settings.dart';
 import 'styles.dart';
 import 'rhythmic_constraint.dart';
 
-class StickingsSettings {
+class StickingsSettings extends SettingsObject {
   bool shuffle = false;
   Limbs limbs = Limbs();
 
   int stickingLength = 4;
   bool avoidNecessaryAlternation = true;
-  int maxNumberOfStickings = -1;
-  bool get generateRandomStickings => maxNumberOfStickings >= 0;
-  bool get generateAllStickings => !generateRandomStickings;
+  bool generateAllStickings = true;
+  bool get generateRandomStickings => !generateAllStickings;
+  int maxNumberOfStickings = 10;
 
   late RhythmicConstraint rhythmicConstraint =
       RhythmicConstraint(rhythmLength: stickingLength);
 }
 
-class StickingsSettingsWidget extends StatefulWidget {
-  final Function(StickingsSettings) onChanged;
-  final StickingsSettings settings;
-
+class StickingsSettingsWidget extends SettingsWidget<StickingsSettings> {
   const StickingsSettingsWidget(
-      {super.key, required this.onChanged, required this.settings});
+      {super.key, required onChanged, required settings})
+      : super(onChanged: onChanged, settings: settings);
 
   @override
   StickingsSettingsWidgetState createState() => StickingsSettingsWidgetState();
 }
 
-class StickingsSettingsWidgetState extends State<StickingsSettingsWidget> {
-  late StickingsSettings settings = widget.settings;
-
-  @override
-  void setState(Function fn) {
-    fn();
-    widget.onChanged(settings);
-  }
-
+class StickingsSettingsWidgetState
+    extends SettingsWidgetState<StickingsSettings> {
   List<DropdownMenuItem<String>> unusedSticks(String currentValue) {
     return [
           DropdownMenuItem(
@@ -69,52 +61,73 @@ class StickingsSettingsWidgetState extends State<StickingsSettingsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Text("stickings"),
-        NumberStepper(
-            initialValue: settings.maxNumberOfStickings,
-            min: -1,
-            max: 20,
-            step: 1,
-            onChanged: (val) => setState(() {
-                  settings.maxNumberOfStickings = val;
-                })),
-        const Text("length"),
-        NumberStepper(
-            initialValue: settings.stickingLength,
-            min: 2,
-            max: 12,
-            step: 1,
-            onChanged: stickingLengthChanged),
-      ]),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Text("avoid alternation"),
-        Switch(
-            activeColor: trimColor,
-            inactiveTrackColor: darkGrey,
-            value: settings.avoidNecessaryAlternation,
-            onChanged: (val) => setState(() {
-                  settings.avoidNecessaryAlternation = val;
-                })),
-        const Text('shuffle'),
-        Switch(
-            activeColor: trimColor,
-            inactiveTrackColor: darkGrey,
-            value: settings.shuffle || settings.generateRandomStickings,
-            onChanged: (val) => setState(() {
-                  settings.shuffle = val;
-                }))
-      ]),
-      LimbsSettingsWidget(
-        limbs: settings.limbs,
-        onLimbsChanged: (l) => setState(() => settings.limbs = l),
-      ),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
-      RhythmicConstraintWidget(
-          constraint: settings.rhythmicConstraint,
-          onChanged: (constraint) =>
-              setState(() => {settings.rhythmicConstraint = constraint})),
-    ]);
+    return Padding(
+        padding: morePadding,
+        child: Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text("generate all possible stickings"),
+            Switch(
+                activeColor: trimColor,
+                inactiveTrackColor: darkGrey,
+                value: settings.generateAllStickings,
+                onChanged: (val) => setState(() {
+                      settings.generateAllStickings = val;
+                    })),
+          ]),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: settings.generateRandomStickings
+                  ? [
+                      const Text("number of stickings"),
+                      NumberStepper(
+                          initialValue: settings.maxNumberOfStickings,
+                          min: 1,
+                          max: 20,
+                          step: 1,
+                          onChanged: (val) => setState(() {
+                                settings.maxNumberOfStickings = val;
+                              })),
+                    ]
+                  : []),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text("sticking length"),
+            NumberStepper(
+                initialValue: settings.stickingLength,
+                min: 2,
+                max: 12,
+                step: 1,
+                onChanged: stickingLengthChanged),
+          ]),
+
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text("include alternating stickings"),
+            Switch(
+                activeColor: trimColor,
+                inactiveTrackColor: darkGrey,
+                value: !settings.avoidNecessaryAlternation,
+                onChanged: (val) => setState(() {
+                      settings.avoidNecessaryAlternation = !val;
+                    })),
+          ]),
+          // Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          //   const Text('shuffle'),
+          //   Switch(
+          //       activeColor: trimColor,
+          //       inactiveTrackColor: darkGrey,
+          //       value: settings.shuffle || settings.generateRandomStickings,
+          //       onChanged: (val) => setState(() {
+          //             settings.shuffle = val;
+          //           }))
+          // ]),
+          LimbsSettingsWidget(
+            limbs: settings.limbs,
+            onLimbsChanged: (l) => setState(() => settings.limbs = l),
+          ),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
+          RhythmicConstraintWidget(
+              settings: settings.rhythmicConstraint,
+              onChanged: (constraint) =>
+                  setState(() => {settings.rhythmicConstraint = constraint})),
+        ]));
   }
 }

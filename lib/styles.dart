@@ -9,7 +9,7 @@ const Color textColor = Colors.white70;
 const TextStyle defaultText = TextStyle(fontSize: 18, color: textColor);
 
 const elementPadding = EdgeInsets.all(2.0);
-
+const morePadding = EdgeInsets.all(10);
 const TextStyle barMarker =
     TextStyle(fontWeight: FontWeight.w900, color: Colors.green);
 const TextStyle beatMarker =
@@ -28,6 +28,6 @@ ExpandablePanel getExpandable(Widget header, Widget expanded,
             tapBodyToCollapse: true,
             iconColor: textColor,
             hasIcon: true),
-        header: Padding(padding: const EdgeInsets.all(10), child: header),
+        header: header,
         collapsed: collapsed ?? Column(),
         expanded: expanded);

@@ -1,5 +1,6 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/settings_widget.dart';
 import 'package:rhythm_practice_helper/styles.dart';
 
 class Stick {
@@ -22,7 +23,7 @@ class Stick {
   int get hashCode => symbol.hashCode;
 }
 
-class Limbs {
+class Limbs extends SettingsObject {
   Stick right = Stick(symbol: 'R', maxBounces: 3, minBounces: 1, inUse: true);
   Stick left = Stick(symbol: 'L', maxBounces: 2, minBounces: 1, inUse: true);
   Stick kick = Stick(symbol: 'K', maxBounces: 2, minBounces: 1, inUse: false);
@@ -42,22 +43,19 @@ class Limbs {
   }
 }
 
-class LimbsSettingsWidget extends StatefulWidget {
-  final Limbs limbs;
-  final Function(Limbs) onLimbsChanged;
-
+class LimbsSettingsWidget extends SettingsWidget<Limbs> {
   const LimbsSettingsWidget({
     super.key,
-    required this.limbs,
-    required this.onLimbsChanged,
-  });
+    required limbs,
+    required onLimbsChanged,
+  }) : super(onChanged: onLimbsChanged, settings: limbs);
 
   @override
   LimbsSettingsWidgetState createState() => LimbsSettingsWidgetState();
 }
 
-class LimbsSettingsWidgetState extends State<LimbsSettingsWidget> {
-  late Limbs limbs = widget.limbs;
+class LimbsSettingsWidgetState extends SettingsWidgetState<Limbs> {
+  late Limbs limbs = widget.settings;
 
   bool expanded = false;
   late ExpandableController limbsSettingsController = ExpandableController(
@@ -70,12 +68,6 @@ class LimbsSettingsWidgetState extends State<LimbsSettingsWidget> {
     limbsSettingsController.addListener(() {
       expanded = !expanded;
     });
-  }
-
-  @override
-  void setState(Function fn) {
-    fn();
-    widget.onLimbsChanged(limbs);
   }
 
   void onSticksChanged(Stick stick, bool useOrNot) {

@@ -34,6 +34,29 @@ List<Stick> getPotentialSticks(
   return potentialSticks;
 }
 
+bool stickingRequiresAlternating(String sticking, StickingsSettings state) {
+  if (sticking[0] == sticking[sticking.length - 1]) {
+    int beginningBounceLength = 1;
+    int endingBounceLength = 1;
+
+    while (beginningBounceLength < sticking.length &&
+        sticking[beginningBounceLength] == sticking[0]) {
+      beginningBounceLength++;
+    }
+    while (endingBounceLength < sticking.length &&
+        sticking[sticking.length - 1 - endingBounceLength] ==
+            sticking[sticking.length - 1]) {
+      endingBounceLength++;
+    }
+
+    if (beginningBounceLength + endingBounceLength >
+        state.limbs.stickMap[sticking[0]]!.maxBounces) {
+      return true;
+    }
+  }
+  return false;
+}
+
 List<String> generateRandomStickings(StickingsSettings state) {
   List<String> stickings = [];
   final random = Random();
@@ -58,6 +81,10 @@ List<String> generateRandomStickings(StickingsSettings state) {
     if (stickings.contains(sticking)) {
       failure = true;
     }
+    if (state.avoidNecessaryAlternation &&
+        stickingRequiresAlternating(sticking, state)) {
+      failure = true;
+    }
     if (failure) {
       failures++;
       if (failures > maxFailures) {
@@ -73,31 +100,15 @@ List<String> generateRandomStickings(StickingsSettings state) {
 
 List<String> generateStickings(StickingsSettings state,
     [String partialSticking = '']) {
-  if (state.maxNumberOfStickings > -1) {
+  if (state.generateRandomStickings) {
     return generateRandomStickings(state);
   }
   List<String> possibleStickings = [];
 
   if (partialSticking.length == state.stickingLength) {
     if (state.avoidNecessaryAlternation &&
-        partialSticking[0] == partialSticking[partialSticking.length - 1]) {
-      int beginningBounceLength = 1;
-      int endingBounceLength = 1;
-
-      while (beginningBounceLength < partialSticking.length &&
-          partialSticking[beginningBounceLength] == partialSticking[0]) {
-        beginningBounceLength++;
-      }
-      while (endingBounceLength < partialSticking.length &&
-          partialSticking[partialSticking.length - 1 - endingBounceLength] ==
-              partialSticking[partialSticking.length - 1]) {
-        endingBounceLength++;
-      }
-
-      if (beginningBounceLength + endingBounceLength >
-          state.limbs.stickMap[partialSticking[0]]!.maxBounces) {
-        return [];
-      }
+        stickingRequiresAlternating(partialSticking, state)) {
+      return [];
     }
     return [partialSticking];
   }

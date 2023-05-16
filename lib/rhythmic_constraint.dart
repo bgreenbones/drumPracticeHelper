@@ -1,9 +1,10 @@
 import "package:expandable/expandable.dart";
 import "package:flutter/material.dart";
+import "package:rhythm_practice_helper/settings_widget.dart";
 import "package:rhythm_practice_helper/styles.dart";
 import "limb_settings.dart";
 
-class RhythmicConstraint {
+class RhythmicConstraint extends SettingsObject {
   RhythmicConstraint({
     required int rhythmLength,
   }) {
@@ -32,20 +33,19 @@ class RhythmicConstraint {
   }
 }
 
-class RhythmicConstraintWidget extends StatefulWidget {
-  final Function(RhythmicConstraint) onChanged;
-  final RhythmicConstraint constraint;
-
+class RhythmicConstraintWidget extends SettingsWidget<RhythmicConstraint> {
   const RhythmicConstraintWidget(
-      {super.key, required this.constraint, required this.onChanged});
+      {super.key, required settings, required onChanged})
+      : super(onChanged: onChanged, settings: settings);
 
   @override
   RhythmicConstraintWidgetState createState() =>
       RhythmicConstraintWidgetState();
 }
 
-class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
-  late RhythmicConstraint constraint = widget.constraint;
+class RhythmicConstraintWidgetState
+    extends SettingsWidgetState<RhythmicConstraint> {
+  late RhythmicConstraint constraint = widget.settings;
 
   bool expanded = false;
   late ExpandableController rhythmicConstraintController = ExpandableController(
@@ -58,12 +58,6 @@ class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
     rhythmicConstraintController.addListener(() {
       expanded = !expanded;
     });
-  }
-
-  @override
-  void setState(Function fn) {
-    fn();
-    widget.onChanged(constraint);
   }
 
   List<TextButton> getStickButtons() {
@@ -99,7 +93,7 @@ class RhythmicConstraintWidgetState extends State<RhythmicConstraintWidget> {
   @override
   Widget build(BuildContext context) {
     return getExpandable(
-        Row(children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           const Text("rhythmic constraint"),
           Switch(
               activeColor: trimColor,
