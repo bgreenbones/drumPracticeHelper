@@ -31,6 +31,13 @@ class RhythmicConstraint extends SettingsObject {
     }
     return rhythm.length - currentSubdivision;
   }
+
+  @override
+  void save() {}
+  @override
+  Future<SettingsObject> load() async {
+    return this;
+  }
 }
 
 class RhythmicConstraintWidget extends SettingsWidget<RhythmicConstraint> {

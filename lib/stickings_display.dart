@@ -12,39 +12,70 @@ class StickingsDisplay extends StatefulWidget {
 
 class StickingsDisplayState extends State<StickingsDisplay> {
   bool editingSettings = false;
-  StickingsSettings settings = StickingsSettings();
+  late StickingsSettings settings = StickingsSettings();
+  late List<String> stickings = generateStickings(settings);
+  double textSize = 1.5;
 
   void editSettings() {
     setState(() {
       editingSettings = !editingSettings;
+    });
+    if (!editingSettings) {
+      regenerate();
+    }
+  }
+
+  void regenerate() {
+    setState(() {
+      stickings = generateStickings(settings);
     });
   }
 
   Column get mainComponent => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+            TextButton(
+                style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(trimColor)),
+                onPressed: () => setState(() {
+                      stickings.shuffle();
+                    }),
+                child: const Text('shuffle', style: defaultText)),
+            TextButton(
+                style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(trimColor)),
+                onPressed: regenerate,
+                child: const Text('regen', style: defaultText))
+          ]),
           const SizedBox(height: 16.0),
           Expanded(
-            child: SingleChildScrollView(
-              child: editingSettings
-                  ? StickingsSettingsWidget(
-                      settings: settings,
-                      onChanged: (newSettings) =>
-                          setState(() => settings = newSettings))
-                  : Column(
-                      children: [
-                        ...generateStickings(settings).map((sticking) {
-                          return Container(
-                            padding: elementPadding,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [Text(sticking)],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-            ),
+            child: settings.getFutureBuilder((s) => SingleChildScrollView(
+                  child: editingSettings
+                      ? StickingsSettingsWidget(
+                          settings: (s as StickingsSettings),
+                          onChanged: (newSettings) =>
+                              setState(() => settings = newSettings))
+                      : Column(
+                          children: [
+                            ...stickings.map((sticking) {
+                              return Container(
+                                padding: elementPadding,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text(sticking,
+                                        maxLines: 1, textScaleFactor: textSize)
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                )),
           ),
         ],
       );

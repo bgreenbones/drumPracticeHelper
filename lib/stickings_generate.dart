@@ -126,8 +126,5 @@ List<String> generateStickings(StickingsSettings state,
     }
   }
 
-  if (partialSticking == '' && state.shuffle) {
-    possibleStickings.shuffle();
-  }
   return possibleStickings;
 }

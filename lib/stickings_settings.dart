@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/number_stepper.dart';
 import 'package:rhythm_practice_helper/settings_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'limb_settings.dart';
 import 'styles.dart';
 import 'rhythmic_constraint.dart';
 
 class StickingsSettings extends SettingsObject {
-  bool shuffle = false;
   Limbs limbs = Limbs();
 
   int stickingLength = 4;
@@ -17,6 +17,21 @@ class StickingsSettings extends SettingsObject {
 
   late RhythmicConstraint rhythmicConstraint =
       RhythmicConstraint(rhythmLength: stickingLength);
+  @override
+  void save() async {
+    prefsFuture.then((prefs) =>
+        prefs.setInt('stickingLength', stickingLength).then((bool success) {}));
+  }
+
+  @override
+  Future<SettingsObject> load() async {
+    await prefsFuture.then((SharedPreferences prefs) {
+      return prefs.getInt('stickingLength') ?? 4;
+    }).then((int val) {
+      stickingLength = val;
+    });
+    return this;
+  }
 }
 
 class StickingsSettingsWidget extends SettingsWidget<StickingsSettings> {
@@ -62,6 +77,7 @@ class StickingsSettingsWidgetState
   @override
   Widget build(BuildContext context) {
     return Padding(
+        // return settings.getFutureBuilder((s) => Padding(
         padding: morePadding,
         child: Column(children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -70,6 +86,7 @@ class StickingsSettingsWidgetState
                 activeColor: trimColor,
                 inactiveTrackColor: darkGrey,
                 value: settings.generateAllStickings,
+                // value: (s as StickingsSettings).generateAllStickings,
                 onChanged: (val) => setState(() {
                       settings.generateAllStickings = val;
                     })),
@@ -98,7 +115,6 @@ class StickingsSettingsWidgetState
                 step: 1,
                 onChanged: stickingLengthChanged),
           ]),
-
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             const Text("include alternating stickings"),
             Switch(
@@ -109,16 +125,6 @@ class StickingsSettingsWidgetState
                       settings.avoidNecessaryAlternation = !val;
                     })),
           ]),
-          // Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          //   const Text('shuffle'),
-          //   Switch(
-          //       activeColor: trimColor,
-          //       inactiveTrackColor: darkGrey,
-          //       value: settings.shuffle || settings.generateRandomStickings,
-          //       onChanged: (val) => setState(() {
-          //             settings.shuffle = val;
-          //           }))
-          // ]),
           LimbsSettingsWidget(
             limbs: settings.limbs,
             onLimbsChanged: (l) => setState(() => settings.limbs = l),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/settings_widget.dart';
 import 'package:rhythm_practice_helper/styles.dart';
 
-class Stick {
+class Stick extends SettingsObject {
   Stick(
       {required this.symbol,
       this.maxBounces = 2,
@@ -21,6 +21,12 @@ class Stick {
 
   @override
   int get hashCode => symbol.hashCode;
+  @override
+  void save() {}
+  @override
+  Future<SettingsObject> load() async {
+    return this;
+  }
 }
 
 class Limbs extends SettingsObject {
@@ -40,6 +46,13 @@ class Limbs extends SettingsObject {
 
   List<Stick> getSomeSticks(int numberOfSticks) {
     return availableSticks.sublist(0, numberOfSticks);
+  }
+
+  @override
+  void save() {}
+  @override
+  Future<SettingsObject> load() async {
+    return this;
   }
 }
 

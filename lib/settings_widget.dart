@@ -1,7 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-abstract class SettingsObject {}
+abstract class SettingsObject {
+  final Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
+  void save();
+  Future<SettingsObject> load();
+  FutureBuilder<SettingsObject> getFutureBuilder(Function(SettingsObject) w) =>
+      FutureBuilder<SettingsObject>(
+          future: load(),
+          builder:
+              (BuildContext context, AsyncSnapshot<SettingsObject> snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return const CircularProgressIndicator();
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  return w(snapshot.data!);
+                }
+            }
+          });
+}
 
 abstract class SettingsWidget<T extends SettingsObject> extends StatefulWidget {
   final Function(T) onChanged;
@@ -15,23 +37,17 @@ abstract class SettingsWidgetState<T extends SettingsObject>
     extends State<SettingsWidget<T>> {
   late T settings = widget.settings;
 
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  late Future<int> _counter;
-
   @override
   void setState(Function fn) {
     fn();
-    // final SharedPreferences prefs = await _prefs;
-    // _counter = prefs.setInt('counter', counter).then((bool success) {
+    settings.save();
     widget.onChanged(settings);
   }
 
   // @override
-  // void initState() {
+  // void initState() async {
   //   super.initState();
-  //   _counter = _prefs.then((SharedPreferences prefs) {
-  //     return prefs.getInt('counter') ?? 0;
-  //   });
+  //   await settings.load();
   // }
 
   // @override
