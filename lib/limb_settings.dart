@@ -26,15 +26,16 @@ class Stick {
 }
 
 class StickRepository extends SettingsObject<Stick> {
-  StickRepository({required super.settings});
+  StickRepository({required super.settings, key = "", required super.parentKey})
+      : super(key: key == "" ? settings.symbol : key);
 
   @override
   void save() {
     prefsFuture.then((prefs) {
-      prefs.setString('symbol', settings.symbol);
-      prefs.setBool('inUse', settings.inUse);
-      prefs.setInt('maxBounces', settings.maxBounces);
-      prefs.setInt('minBounces', settings.minBounces);
+      prefs.setString('$key/symbol', settings.symbol);
+      prefs.setBool('$key/inUse', settings.inUse);
+      prefs.setInt('$key/maxBounces', settings.maxBounces);
+      prefs.setInt('$key/minBounces', settings.minBounces);
       return prefs;
     });
   }
@@ -42,10 +43,12 @@ class StickRepository extends SettingsObject<Stick> {
   @override
   Future<Stick> load() async {
     return prefsFuture.then((SharedPreferences prefs) {
-      settings.symbol = prefs.getString('symbol') ?? 'R';
-      settings.inUse = prefs.getBool('inUse') ?? true;
-      settings.maxBounces = prefs.getInt('maxBounces') ?? 2;
-      settings.minBounces = prefs.getInt('minBounces') ?? 1;
+      settings.symbol = prefs.getString('$key/symbol') ?? settings.symbol;
+      settings.inUse = prefs.getBool('$key/inUse') ?? settings.inUse;
+      settings.maxBounces =
+          prefs.getInt('$key/maxBounces') ?? settings.maxBounces;
+      settings.minBounces =
+          prefs.getInt('$key/minBounces') ?? settings.minBounces;
       return settings;
     });
   }
@@ -53,8 +56,12 @@ class StickRepository extends SettingsObject<Stick> {
 
 class StickSettingsWidget extends SettingsWidget<Stick> {
   const StickSettingsWidget(
-      {super.key, required stick, required onStickChanged, required expanded})
-      : super(onChanged: onStickChanged, settings: stick, expanded: expanded);
+      {super.key,
+      required super.settings,
+      required super.onChanged,
+      required super.expanded,
+      super.parentKey,
+      super.settingsKey});
 
   @override
   StickSettingsWidgetState createState() => StickSettingsWidgetState();
@@ -62,12 +69,12 @@ class StickSettingsWidget extends SettingsWidget<Stick> {
 
 class StickSettingsWidgetState
     extends SettingsWidgetState<Stick, StickRepository> {
-  // late Stick stick = widget.settings;
   late bool expanded = widget.expanded ?? false;
   @override
   void initState() {
     super.initState();
-    settingsRepository = StickRepository(settings: widget.settings);
+    settingsRepository =
+        StickRepository(settings: widget.settings, parentKey: widget.parentKey);
   }
 
   void onSticksChanged(bool useOrNot, Stick stick) {
@@ -145,7 +152,8 @@ class Limbs {
 }
 
 class LimbsRepository extends SettingsObject<Limbs> {
-  LimbsRepository({required super.settings});
+  LimbsRepository(
+      {required super.settings, required super.parentKey, required super.key});
 
   @override
   void save() {}
@@ -156,11 +164,12 @@ class LimbsRepository extends SettingsObject<Limbs> {
 }
 
 class LimbsSettingsWidget extends SettingsWidget<Limbs> {
-  const LimbsSettingsWidget({
-    super.key,
-    required limbs,
-    required onLimbsChanged,
-  }) : super(onChanged: onLimbsChanged, settings: limbs);
+  const LimbsSettingsWidget(
+      {super.key,
+      required super.settings,
+      required super.onChanged,
+      super.parentKey,
+      super.settingsKey = 'limbs'});
 
   @override
   LimbsSettingsWidgetState createState() => LimbsSettingsWidgetState();
@@ -168,8 +177,6 @@ class LimbsSettingsWidget extends SettingsWidget<Limbs> {
 
 class LimbsSettingsWidgetState
     extends SettingsWidgetState<Limbs, LimbsRepository> {
-  // late Limbs limbs = widget.settings;
-
   bool expanded = false;
   late ExpandableController limbsSettingsController = ExpandableController(
     initialExpanded: expanded,
@@ -178,7 +185,10 @@ class LimbsSettingsWidgetState
   @override
   void initState() {
     super.initState();
-    settingsRepository = LimbsRepository(settings: widget.settings);
+    settingsRepository = LimbsRepository(
+        settings: widget.settings,
+        key: widget.settingsKey,
+        parentKey: widget.parentKey);
     limbsSettingsController.addListener(() {
       expanded = !expanded;
     });
@@ -208,13 +218,14 @@ class LimbsSettingsWidgetState
             Column(children: [
               for (Stick stick in limbs.availableSticks)
                 StickSettingsWidget(
-                    onStickChanged: (newStick) {
+                    onChanged: (newStick) {
                       setState(() {
                         stick = newStick;
                       });
                     },
-                    stick: stick,
-                    expanded: true)
+                    settings: stick,
+                    expanded: true,
+                    parentKey: settingsRepository.key)
             ])
           ],
         ),
@@ -222,13 +233,14 @@ class LimbsSettingsWidgetState
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           for (Stick stick in limbs.availableSticks)
             StickSettingsWidget(
-                onStickChanged: (newStick) {
+                onChanged: (newStick) {
                   setState(() {
                     stick = newStick;
                   });
                 },
-                stick: stick,
-                expanded: false)
+                settings: stick,
+                expanded: false,
+                parentKey: settingsRepository.key)
         ]),
         controller: limbsSettingsController));
   }

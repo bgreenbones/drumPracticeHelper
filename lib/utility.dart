@@ -9,13 +9,15 @@ FutureBuilder<T> getFutureBuilder<T>(Future<T> future, Function(T) w) =>
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return const CircularProgressIndicator();
+            // return const CircularProgressIndicator();
             case ConnectionState.active:
             case ConnectionState.done:
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else {
-                return w(snapshot.data!);
+                return snapshot.data == null
+                    ? const CircularProgressIndicator()
+                    : w(snapshot.data!);
               }
           }
         });

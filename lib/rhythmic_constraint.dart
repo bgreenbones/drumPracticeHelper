@@ -26,17 +26,14 @@ class RhythmicConstraint {
     if (currentSubdivision >= rhythm.length) {
       return -1;
     }
-    for (int i = 0; i < rhythm.length; i++) {
-      if (rhythm[i] && i > currentSubdivision) {
-        return i - currentSubdivision;
-      }
-    }
+    for (int i = 0; i < rhythm.length; i++) {}
     return rhythm.length - currentSubdivision;
   }
 }
 
 class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
-  RhythmicConstraintRepository({required super.settings});
+  RhythmicConstraintRepository(
+      {required super.settings, required super.key, required super.parentKey});
   String _boolToString(bool boolean) {
     return boolean ? '1' : '0';
   }
@@ -49,15 +46,17 @@ class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
     return string == '1' ? true : false;
   }
 
-  List<bool> _stringListToBoolList(List<String> strings) {
-    return strings.map((s) => _stringToBool(s)).toList();
+  List<bool>? _stringListToBoolList(List<String>? strings) {
+    return strings?.map((s) => _stringToBool(s)).toList();
+    // return strings == null ? null : strings.map((s) => _stringToBool(s)).toList();
   }
 
   @override
   void save() async {
     prefsFuture.then((prefs) {
-      prefs.setStringList('rhythm', _boolListToStringList(settings.rhythm));
-      prefs.setBool('active', settings.active);
+      prefs.setStringList(
+          '$key/rhythm', _boolListToStringList(settings.rhythm));
+      prefs.setBool('$key/active', settings.active);
       return prefs;
     });
   }
@@ -67,8 +66,9 @@ class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
     return prefsFuture.then((SharedPreferences prefs) {
       // settings.limbs = ;
       settings.rhythm =
-          _stringListToBoolList(prefs.getStringList('rhythm') ?? []);
-      settings.active = prefs.getBool('active') ?? false;
+          _stringListToBoolList(prefs.getStringList('$key/rhythm')) ??
+              settings.rhythm;
+      settings.active = prefs.getBool('$key/active') ?? settings.active;
       return settings;
     });
   }
@@ -76,8 +76,11 @@ class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
 
 class RhythmicConstraintWidget extends SettingsWidget<RhythmicConstraint> {
   const RhythmicConstraintWidget(
-      {super.key, required settings, required onChanged})
-      : super(onChanged: onChanged, settings: settings);
+      {super.key,
+      required super.settings,
+      required super.onChanged,
+      super.parentKey,
+      super.settingsKey = 'rhythmicConstraint'});
 
   @override
   RhythmicConstraintWidgetState createState() =>
@@ -86,8 +89,6 @@ class RhythmicConstraintWidget extends SettingsWidget<RhythmicConstraint> {
 
 class RhythmicConstraintWidgetState extends SettingsWidgetState<
     RhythmicConstraint, RhythmicConstraintRepository> {
-  // late RhythmicConstraint constraint = widget.settings;
-
   bool expanded = false;
   late ExpandableController rhythmicConstraintController = ExpandableController(
     initialExpanded: expanded,
@@ -96,30 +97,14 @@ class RhythmicConstraintWidgetState extends SettingsWidgetState<
   @override
   void initState() {
     super.initState();
-    settingsRepository =
-        RhythmicConstraintRepository(settings: widget.settings);
+    settingsRepository = RhythmicConstraintRepository(
+        settings: widget.settings,
+        key: widget.settingsKey,
+        parentKey: widget.parentKey);
     rhythmicConstraintController.addListener(() {
       expanded = !expanded;
     });
   }
-
-  // List<TextButton> getStickButtons() {
-  //   List<TextButton> result = [];
-  //   for (Stick stick in constraint.limbs.availableSticks) {
-  //     result.add(TextButton(
-  //         style: ButtonStyle(
-  //             backgroundColor: MaterialStateProperty.all<Color>(
-  //                 stick.inUse ? trimColor : darkGrey)),
-  //         onPressed: () => setState(() {
-  //               stick.inUse = !(stick.inUse);
-  //             }),
-  //         child: Text(
-  //           stick.symbol,
-  //           style: defaultText,
-  //         )));
-  //   }
-  //   return result;
-  // }
 
   List<IconButton> getRhythmButtons(List<bool> rhythm) {
     List<IconButton> result = [];
@@ -149,11 +134,11 @@ class RhythmicConstraintWidgetState extends SettingsWidgetState<
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: getRhythmButtons(c.rhythm)),
           LimbsSettingsWidget(
-            limbs: c.limbs,
-            onLimbsChanged: (l) => setState(() {
-              c.limbs = l;
-            }),
-          ),
+              settings: c.limbs,
+              onChanged: (l) => setState(() {
+                    c.limbs = l;
+                  }),
+              parentKey: settingsRepository.key),
         ]),
         controller: rhythmicConstraintController));
   }
