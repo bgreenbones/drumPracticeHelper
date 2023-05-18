@@ -1,46 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-abstract class SettingsObject {
+// abstract class SettingsObject {
+abstract class SettingsObject<T> {
+  bool loaded = false;
+  T settings;
+  SettingsObject({required this.settings});
   final Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
   void save();
-  Future<SettingsObject> load();
-  FutureBuilder<SettingsObject> getFutureBuilder(Function(SettingsObject) w) =>
-      FutureBuilder<SettingsObject>(
-          future: load(),
-          builder:
-              (BuildContext context, AsyncSnapshot<SettingsObject> snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.none:
-              case ConnectionState.waiting:
-                return const CircularProgressIndicator();
-              case ConnectionState.active:
-              case ConnectionState.done:
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  return w(snapshot.data!);
-                }
-            }
-          });
+  // Future<SettingsObject> load();
+  Future<T> load();
+  Widget getWidget(Function(T) w) {
+    if (loaded) {
+      return w(settings);
+    }
+    loaded = true;
+    return getFutureBuilder(load(), w);
+  }
 }
 
-abstract class SettingsWidget<T extends SettingsObject> extends StatefulWidget {
+// abstract class SettingsWidget<T extends SettingsObject> extends StatefulWidget {
+abstract class SettingsWidget<T> extends StatefulWidget {
   final Function(T) onChanged;
   final T settings;
-
+  final bool? expanded;
   const SettingsWidget(
-      {super.key, required this.onChanged, required this.settings});
+      {super.key,
+      required this.onChanged,
+      required this.settings,
+      this.expanded});
 }
 
-abstract class SettingsWidgetState<T extends SettingsObject>
+// abstract class SettingsWidgetState<T extends SettingsObject>
+//     extends State<SettingsWidget<T>> {
+abstract class SettingsWidgetState<T, U extends SettingsObject<T>>
     extends State<SettingsWidget<T>> {
-  late T settings = widget.settings;
+  // late Future<T> settingsFuture = settingsRepository.load();
+  // late T settings; //= widget.settings;
+  late U settingsRepository;
+  T get settings => settingsRepository.settings;
 
   @override
   void setState(Function fn) {
     fn();
-    settings.save();
+    settingsRepository.save();
+    settingsRepository.loaded = true;
     widget.onChanged(settings);
   }
 
@@ -48,40 +53,5 @@ abstract class SettingsWidgetState<T extends SettingsObject>
   // void initState() async {
   //   super.initState();
   //   await settings.load();
-  // }
-
-  // @override
-  // Widget build(BuildContext context) {
-  // return const Text("implement");
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: const Text('SharedPreferences Demo'),
-  //     ),
-  //     body: Center(
-  //         child: FutureBuilder<int>(
-  //             future: _counter,
-  //             builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-  //               switch (snapshot.connectionState) {
-  //                 case ConnectionState.none:
-  //                 case ConnectionState.waiting:
-  //                   return const CircularProgressIndicator();
-  //                 case ConnectionState.active:
-  //                 case ConnectionState.done:
-  //                   if (snapshot.hasError) {
-  //                     return Text('Error: ${snapshot.error}');
-  //                   } else {
-  //                     return Text(
-  //                       'Button tapped ${snapshot.data} time${snapshot.data == 1 ? '' : 's'}.\n\n'
-  //                       'This should persist across restarts.',
-  //                     );
-  //                   }
-  //               }
-  //             })),
-  //     floatingActionButton: FloatingActionButton(
-  //       onPressed: _incrementCounter,
-  //       tooltip: 'Increment',
-  //       child: const Icon(Icons.add),
-  //     ),
-  //   );
   // }
 }

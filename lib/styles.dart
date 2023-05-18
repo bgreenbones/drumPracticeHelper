@@ -18,16 +18,3 @@ const TextStyle groupingMarker = TextStyle(color: Colors.deepOrange);
 
 ButtonStyle buttonStyle =
     ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(trimColor));
-
-ExpandablePanel getExpandable(Widget header, Widget expanded,
-        {ExpandableController? controller, Widget? collapsed}) =>
-    ExpandablePanel(
-        controller: controller,
-        theme: const ExpandableThemeData(
-            headerAlignment: ExpandablePanelHeaderAlignment.center,
-            tapBodyToCollapse: true,
-            iconColor: textColor,
-            hasIcon: true),
-        header: header,
-        collapsed: collapsed ?? Column(),
-        expanded: expanded);

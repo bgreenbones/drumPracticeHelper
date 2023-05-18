@@ -6,7 +6,7 @@ import 'limb_settings.dart';
 import 'styles.dart';
 import 'rhythmic_constraint.dart';
 
-class StickingsSettings extends SettingsObject {
+class StickingsSettings {
   Limbs limbs = Limbs();
 
   int stickingLength = 4;
@@ -17,20 +17,38 @@ class StickingsSettings extends SettingsObject {
 
   late RhythmicConstraint rhythmicConstraint =
       RhythmicConstraint(rhythmLength: stickingLength);
+}
+
+class StickingsSettingsRepository extends SettingsObject<StickingsSettings> {
+  StickingsSettingsRepository({required super.settings});
+
   @override
   void save() async {
-    prefsFuture.then((prefs) =>
-        prefs.setInt('stickingLength', stickingLength).then((bool success) {}));
+    prefsFuture.then((prefs) {
+      prefs.setInt('stickingLength', settings.stickingLength);
+      prefs.setInt('maxNumberOfStickings', settings.maxNumberOfStickings);
+      prefs.setBool(
+          'avoidNecessaryAlternation', settings.avoidNecessaryAlternation);
+      prefs.setBool('generateAllStickings', settings.generateAllStickings);
+      return prefs;
+    }); //.then((bool success) {});
   }
 
   @override
-  Future<SettingsObject> load() async {
-    await prefsFuture.then((SharedPreferences prefs) {
-      return prefs.getInt('stickingLength') ?? 4;
-    }).then((int val) {
-      stickingLength = val;
+  Future<StickingsSettings> load() async {
+    return prefsFuture.then((SharedPreferences prefs) {
+      // settings.limbs = ;
+      settings.stickingLength = prefs.getInt('stickingLength') ?? 4;
+      settings.avoidNecessaryAlternation =
+          prefs.getBool('avoidNecessaryAlternation') ?? true;
+      settings.generateAllStickings =
+          prefs.getBool('generateAllStickings') ?? true;
+      settings.maxNumberOfStickings =
+          prefs.getInt('maxNumberOfStickings') ?? 10;
+      // settings.rhythmicConstraint =
+      //     RhythmicConstraint(rhythmLength: stickingLength);
+      return settings;
     });
-    return this;
   }
 }
 
@@ -43,29 +61,35 @@ class StickingsSettingsWidget extends SettingsWidget<StickingsSettings> {
   StickingsSettingsWidgetState createState() => StickingsSettingsWidgetState();
 }
 
-class StickingsSettingsWidgetState
-    extends SettingsWidgetState<StickingsSettings> {
-  List<DropdownMenuItem<String>> unusedSticks(String currentValue) {
-    return [
-          DropdownMenuItem(
-              value: currentValue,
-              child: Text(currentValue, style: defaultText))
-        ] +
-        settings.limbs.unusedSticks
-            .map((s) => DropdownMenuItem(
-                value: s.symbol, child: Text(s.symbol, style: defaultText)))
-            .toList();
+class StickingsSettingsWidgetState extends SettingsWidgetState<
+    StickingsSettings, StickingsSettingsRepository> {
+  @override
+  void initState() {
+    super.initState();
+    settingsRepository = StickingsSettingsRepository(settings: widget.settings);
   }
 
-  void minimumBouncesChanged(int val, Stick stick) {
-    setState(() =>
-        stick.minBounces = val <= stick.maxBounces ? val : stick.minBounces);
-  }
+  // List<DropdownMenuItem<String>> unusedSticks(String currentValue) {
+  //   return [
+  //         DropdownMenuItem(
+  //             value: currentValue,
+  //             child: Text(currentValue, style: defaultText))
+  //       ] +
+  //       settings.limbs.unusedSticks
+  //           .map((s) => DropdownMenuItem(
+  //               value: s.symbol, child: Text(s.symbol, style: defaultText)))
+  //           .toList();
+  // }
 
-  void maximumBouncesChanged(int val, Stick stick) {
-    setState(() =>
-        stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
-  }
+  // void minimumBouncesChanged(int val, Stick stick) {
+  //   setState(() =>
+  //       stick.minBounces = val <= stick.maxBounces ? val : stick.minBounces);
+  // }
+
+  //  void maximumBouncesChanged(int val, Stick stick) {
+  //   setState(() =>
+  //       stick.maxBounces = val >= stick.minBounces ? val : stick.maxBounces);
+  // }
 
   void stickingLengthChanged(val) {
     setState(() => {
@@ -76,64 +100,67 @@ class StickingsSettingsWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        // return settings.getFutureBuilder((s) => Padding(
-        padding: morePadding,
-        child: Column(children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            const Text("generate all possible stickings"),
-            Switch(
-                activeColor: trimColor,
-                inactiveTrackColor: darkGrey,
-                value: settings.generateAllStickings,
-                // value: (s as StickingsSettings).generateAllStickings,
-                onChanged: (val) => setState(() {
-                      settings.generateAllStickings = val;
-                    })),
-          ]),
-          Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: settings.generateRandomStickings
-                  ? [
-                      const Text("number of stickings"),
-                      NumberStepper(
-                          initialValue: settings.maxNumberOfStickings,
-                          min: 1,
-                          max: 20,
-                          step: 1,
-                          onChanged: (val) => setState(() {
-                                settings.maxNumberOfStickings = val;
-                              })),
-                    ]
-                  : []),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            const Text("sticking length"),
-            NumberStepper(
-                initialValue: settings.stickingLength,
-                min: 2,
-                max: 12,
-                step: 1,
-                onChanged: stickingLengthChanged),
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            const Text("include alternating stickings"),
-            Switch(
-                activeColor: trimColor,
-                inactiveTrackColor: darkGrey,
-                value: !settings.avoidNecessaryAlternation,
-                onChanged: (val) => setState(() {
-                      settings.avoidNecessaryAlternation = !val;
-                    })),
-          ]),
-          LimbsSettingsWidget(
-            limbs: settings.limbs,
-            onLimbsChanged: (l) => setState(() => settings.limbs = l),
-          ),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
-          RhythmicConstraintWidget(
-              settings: settings.rhythmicConstraint,
-              onChanged: (constraint) =>
-                  setState(() => {settings.rhythmicConstraint = constraint})),
-        ]));
+    // return Padding(
+    return settingsRepository.getWidget(
+        // return getFutureBuilder(
+        //     settingsRepository.load(),
+        (s) => Padding(
+            padding: morePadding,
+            child: Column(children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const Text("generate all possible stickings"),
+                Switch(
+                    activeColor: trimColor,
+                    inactiveTrackColor: darkGrey,
+                    value: s.generateAllStickings,
+                    // value: (s as StickingsSettings).generateAllStickings,
+                    onChanged: (val) => setState(() {
+                          s.generateAllStickings = val;
+                        })),
+              ]),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: s.generateRandomStickings
+                      ? [
+                          const Text("number of stickings"),
+                          NumberStepper(
+                              initialValue: s.maxNumberOfStickings,
+                              min: 1,
+                              max: 20,
+                              step: 1,
+                              onChanged: (val) => setState(() {
+                                    s.maxNumberOfStickings = val;
+                                  })),
+                        ]
+                      : []),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const Text("sticking length"),
+                NumberStepper(
+                    initialValue: s.stickingLength,
+                    min: 2,
+                    max: 12,
+                    step: 1,
+                    onChanged: stickingLengthChanged),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const Text("include alternating stickings"),
+                Switch(
+                    activeColor: trimColor,
+                    inactiveTrackColor: darkGrey,
+                    value: !s.avoidNecessaryAlternation,
+                    onChanged: (val) => setState(() {
+                          s.avoidNecessaryAlternation = !val;
+                        })),
+              ]),
+              LimbsSettingsWidget(
+                limbs: s.limbs,
+                onLimbsChanged: (l) => setState(() => s.limbs = l),
+              ),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
+              RhythmicConstraintWidget(
+                  settings: s.rhythmicConstraint,
+                  onChanged: (constraint) =>
+                      setState(() => {s.rhythmicConstraint = constraint})),
+            ])));
   }
 }
