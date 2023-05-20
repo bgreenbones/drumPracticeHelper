@@ -26,7 +26,11 @@ class RhythmicConstraint implements Settings {
     if (currentSubdivision >= rhythm.length) {
       return -1;
     }
-    for (int i = 0; i < rhythm.length; i++) {}
+    for (int i = 0; i < rhythm.length; i++) {
+      if (rhythm[i] && i > currentSubdivision) {
+        return i - currentSubdivision;
+      }
+    }
     return rhythm.length - currentSubdivision;
   }
 
@@ -51,7 +55,7 @@ class RhythmicConstraint implements Settings {
   Future<void> save(
       String parentKey, Future<SharedPreferences> prefsFuture) async {
     String absKey = Settings.absoluteKey(parentKey, key);
-    await limbs.save(parentKey, prefsFuture);
+    await limbs.save(absKey, prefsFuture);
     await prefsFuture.then((prefs) {
       prefs.setStringList('$absKey/rhythm', _boolListToStringList(rhythm));
       prefs.setBool('$absKey/active', active);
@@ -63,7 +67,7 @@ class RhythmicConstraint implements Settings {
   Future<void> load(
       String parentKey, Future<SharedPreferences> prefsFuture) async {
     String absKey = Settings.absoluteKey(parentKey, key);
-    await limbs.load(parentKey, prefsFuture);
+    await limbs.load(absKey, prefsFuture);
     await prefsFuture.then((SharedPreferences prefs) {
       int enforcedLength = rhythm.length;
       rhythm = _stringListToBoolList(prefs.getStringList('$absKey/rhythm')) ??
@@ -126,7 +130,7 @@ class RhythmicConstraintWidgetState
               inactiveTrackColor: darkGrey,
               value: c.active,
               onChanged: (val) => setState(() {
-                    c.active = val;
+                    settings.active = val;
                   }))
         ]),
         Column(children: [
@@ -136,9 +140,9 @@ class RhythmicConstraintWidgetState
           LimbsSettingsWidget(
               settings: c.limbs,
               onChanged: (l) => setState(() {
-                    c.limbs = l;
+                    settings.limbs = l;
                   }),
-              parentKey: c.key),
+              parentKey: settingsRepository.absoluteKey),
         ]),
         controller: rhythmicConstraintController));
   }

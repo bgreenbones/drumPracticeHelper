@@ -14,6 +14,7 @@ class SettingsRepository<T extends Settings> {
   bool loaded = false;
   T settings;
   String parentKey;
+  String get absoluteKey => Settings.absoluteKey(parentKey, settings.key);
 
   SettingsRepository({required this.settings, required this.parentKey});
   final Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
@@ -59,6 +60,9 @@ abstract class SettingsWidgetState<T extends Settings>
           // key: widget.settingsKey,
           parentKey: widget.parentKey);
   T get settings => settingsRepository.settings;
+  set settings(T s) {
+    settingsRepository.settings = s;
+  }
 
   @override
   void setState(void Function() fn) {

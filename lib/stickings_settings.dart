@@ -22,7 +22,7 @@ class StickingsSettings implements Settings {
   Future<void> save(
       String parentKey, Future<SharedPreferences> prefsFuture) async {
     String absKey = Settings.absoluteKey(parentKey, key);
-    limbs.save(key, prefsFuture);
+    await limbs.save(absKey, prefsFuture);
     await rhythmicConstraint.save(absKey, prefsFuture);
     await prefsFuture.then((prefs) {
       prefs.setInt('$absKey/stickingLength', stickingLength);
@@ -91,7 +91,7 @@ class StickingsSettingsWidgetState
                 inactiveTrackColor: darkGrey,
                 value: s.generateAllStickings,
                 onChanged: (val) => setState(() {
-                      s.generateAllStickings = val;
+                      settings.generateAllStickings = val;
                     })),
           ]),
           Row(
@@ -105,7 +105,7 @@ class StickingsSettingsWidgetState
                           max: 20,
                           step: 1,
                           onChanged: (val) => setState(() {
-                                s.maxNumberOfStickings = val;
+                                settings.maxNumberOfStickings = val;
                               })),
                     ]
                   : []),
@@ -125,19 +125,19 @@ class StickingsSettingsWidgetState
                 inactiveTrackColor: darkGrey,
                 value: !s.avoidNecessaryAlternation,
                 onChanged: (val) => setState(() {
-                      s.avoidNecessaryAlternation = !val;
+                      settings.avoidNecessaryAlternation = !val;
                     })),
           ]),
           LimbsSettingsWidget(
               settings: s.limbs,
               onChanged: (l) => setState(() => s.limbs = l),
-              parentKey: s.key),
+              parentKey: settingsRepository.absoluteKey),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
           RhythmicConstraintWidget(
               settings: s.rhythmicConstraint,
               onChanged: (constraint) =>
-                  setState(() => {s.rhythmicConstraint = constraint}),
-              parentKey: s.key),
+                  setState(() => {settings.rhythmicConstraint = constraint}),
+              parentKey: settingsRepository.absoluteKey),
         ])));
   }
 }

@@ -18,7 +18,7 @@ class StickingsDisplayState extends State<StickingsDisplay> {
           settings: StickingsSettings(), parentKey: "");
   // late StickingsSettings settings = StickingsSettings();
   // late Future<StickingsSettings> settingsFuture = StickingsSettings().load();
-  // late List<String> stickings = generateStickings(settings);
+  late List<String> stickings = generateStickings(settingsRepository.settings);
   double textSize = 1.5;
 
   void editSettings() {
@@ -32,7 +32,7 @@ class StickingsDisplayState extends State<StickingsDisplay> {
 
   void regenerate() {
     setState(() {
-      // stickings = generateStickings(settings);
+      stickings = generateStickings(settingsRepository.settings);
     });
   }
 
@@ -45,7 +45,7 @@ class StickingsDisplayState extends State<StickingsDisplay> {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(trimColor)),
                 onPressed: () => setState(() {
-                      // stickings.shuffle();
+                      stickings.shuffle();
                     }),
                 child: const Text('shuffle', style: defaultText)),
             TextButton(
@@ -62,8 +62,8 @@ class StickingsDisplayState extends State<StickingsDisplay> {
                     ? StickingsSettingsWidget(
                         settings: settings,
                         repository: settingsRepository,
-                        onChanged: (newSettings) =>
-                            setState(() => settings = newSettings))
+                        onChanged: (newSettings) => setState(
+                            () => settingsRepository.settings = newSettings))
                     : Column(
                         children: [
                           ...generateStickings(settings).map((sticking) {

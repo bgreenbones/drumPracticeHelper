@@ -207,7 +207,7 @@ class LimbsSettingsWidgetState extends SettingsWidgetState<Limbs> {
                     },
                     settings: stick,
                     expanded: true,
-                    parentKey: limbs.key)
+                    parentKey: settingsRepository.absoluteKey)
             ])
           ],
         ),
@@ -222,7 +222,7 @@ class LimbsSettingsWidgetState extends SettingsWidgetState<Limbs> {
                 },
                 settings: stick,
                 expanded: false,
-                parentKey: limbs.key)
+                parentKey: settingsRepository.absoluteKey)
         ]),
         controller: limbsSettingsController));
   }
