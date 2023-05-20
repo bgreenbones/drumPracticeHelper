@@ -2,7 +2,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:rhythm_practice_helper/styles.dart';
 
-FutureBuilder<T> getFutureBuilder<T>(Future<T> future, Function(T) w) =>
+FutureBuilder<T> getFutureBuilder<T>(Future<T> future, Widget Function(T) w) =>
     FutureBuilder<T>(
         future: future,
         builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
@@ -16,7 +16,9 @@ FutureBuilder<T> getFutureBuilder<T>(Future<T> future, Function(T) w) =>
                 return Text('Error: ${snapshot.error}');
               } else {
                 return snapshot.data == null
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(
+                        color: trimColor,
+                      )
                     : w(snapshot.data!);
               }
           }
