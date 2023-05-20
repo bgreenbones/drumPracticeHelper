@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rhythm_practice_helper/settings_widget.dart';
 import 'package:rhythm_practice_helper/stickings_settings.dart';
-import 'package:rhythm_practice_helper/utility.dart';
 import 'styles.dart';
 import 'stickings_generate.dart';
 
@@ -13,7 +13,10 @@ class StickingsDisplay extends StatefulWidget {
 
 class StickingsDisplayState extends State<StickingsDisplay> {
   bool editingSettings = false;
-  late StickingsSettings settings = StickingsSettings();
+  SettingsRepository<StickingsSettings> settingsRepository =
+      SettingsRepository<StickingsSettings>(
+          settings: StickingsSettings(), parentKey: "");
+  // late StickingsSettings settings = StickingsSettings();
   // late Future<StickingsSettings> settingsFuture = StickingsSettings().load();
   // late List<String> stickings = generateStickings(settings);
   double textSize = 1.5;
@@ -53,30 +56,32 @@ class StickingsDisplayState extends State<StickingsDisplay> {
                 child: const Text('regen', style: defaultText))
           ]),
           const SizedBox(height: 16.0),
-          Expanded(
-              child: SingleChildScrollView(
-            child: editingSettings
-                ? StickingsSettingsWidget(
-                    settings: settings,
-                    onChanged: (newSettings) =>
-                        setState(() => settings = newSettings))
-                : Column(
-                    children: [
-                      ...generateStickings(settings).map((sticking) {
-                        return Container(
-                          padding: elementPadding,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Text(sticking,
-                                  maxLines: 1, textScaleFactor: textSize)
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-          )),
+          settingsRepository.getWidget((settings) => Expanded(
+                  child: SingleChildScrollView(
+                child: editingSettings
+                    ? StickingsSettingsWidget(
+                        settings: settings,
+                        repository: settingsRepository,
+                        onChanged: (newSettings) =>
+                            setState(() => settings = newSettings))
+                    : Column(
+                        children: [
+                          ...generateStickings(settings).map((sticking) {
+                            return Container(
+                              padding: elementPadding,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(sticking,
+                                      maxLines: 1, textScaleFactor: textSize)
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+              ))),
         ],
       );
 

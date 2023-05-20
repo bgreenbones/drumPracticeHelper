@@ -6,7 +6,7 @@ import 'limb_settings.dart';
 import 'styles.dart';
 import 'rhythmic_constraint.dart';
 
-class StickingsSettings {
+class StickingsSettings implements Settings {
   Limbs limbs = Limbs();
 
   int stickingLength = 4;
@@ -17,44 +17,44 @@ class StickingsSettings {
 
   late RhythmicConstraint rhythmicConstraint =
       RhythmicConstraint(rhythmLength: stickingLength);
-}
-
-class StickingsSettingsRepository extends SettingsObject<StickingsSettings> {
-  StickingsSettingsRepository(
-      {required super.settings, required super.key, required super.parentKey});
 
   @override
-  void save() async {
-    prefsFuture.then((prefs) {
-      prefs.setInt('$key/stickingLength', settings.stickingLength);
-      prefs.setInt('$key/maxNumberOfStickings', settings.maxNumberOfStickings);
+  Future<void> save(
+      String parentKey, Future<SharedPreferences> prefsFuture) async {
+    String absKey = Settings.absoluteKey(parentKey, key);
+    limbs.save(key, prefsFuture);
+    await rhythmicConstraint.save(absKey, prefsFuture);
+    await prefsFuture.then((prefs) {
+      prefs.setInt('$absKey/stickingLength', stickingLength);
+      prefs.setInt('$absKey/maxNumberOfStickings', maxNumberOfStickings);
       prefs.setBool(
-          '$key/avoidNecessaryAlternation', settings.avoidNecessaryAlternation);
-      prefs.setBool('$key/generateAllStickings', settings.generateAllStickings);
+          '$absKey/avoidNecessaryAlternation', avoidNecessaryAlternation);
+      prefs.setBool('$absKey/generateAllStickings', generateAllStickings);
       return prefs;
     }); //.then((bool success) {});
   }
 
   @override
-  Future<StickingsSettings> load() async {
-    return prefsFuture.then((SharedPreferences prefs) {
-      // settings.limbs = ;
-      settings.stickingLength =
-          prefs.getInt('$key/stickingLength') ?? settings.stickingLength;
-      settings.avoidNecessaryAlternation =
-          prefs.getBool('$key/avoidNecessaryAlternation') ??
-              settings.avoidNecessaryAlternation;
-      settings.generateAllStickings =
-          prefs.getBool('$key/generateAllStickings') ??
-              settings.generateAllStickings;
-      settings.maxNumberOfStickings =
-          prefs.getInt('$key/maxNumberOfStickings') ??
-              settings.maxNumberOfStickings;
-      // settings.rhythmicConstraint =
-      //     RhythmicConstraint(rhythmLength: stickingLength);
-      return settings;
+  Future<void> load(
+      String parentKey, Future<SharedPreferences> prefsFuture) async {
+    String absKey = Settings.absoluteKey(parentKey, key);
+    await limbs.load(absKey, prefsFuture);
+    await rhythmicConstraint.load(absKey, prefsFuture);
+    await prefsFuture.then((SharedPreferences prefs) {
+      stickingLength = prefs.getInt('$absKey/stickingLength') ?? stickingLength;
+      rhythmicConstraint.rhythmLength = stickingLength;
+      avoidNecessaryAlternation =
+          prefs.getBool('$absKey/avoidNecessaryAlternation') ??
+              avoidNecessaryAlternation;
+      generateAllStickings =
+          prefs.getBool('$absKey/generateAllStickings') ?? generateAllStickings;
+      maxNumberOfStickings =
+          prefs.getInt('$absKey/maxNumberOfStickings') ?? maxNumberOfStickings;
     });
   }
+
+  @override
+  String key = 'stickings';
 }
 
 class StickingsSettingsWidget extends SettingsWidget<StickingsSettings> {
@@ -62,24 +62,16 @@ class StickingsSettingsWidget extends SettingsWidget<StickingsSettings> {
       {super.key,
       required super.onChanged,
       required super.settings,
-      super.settingsKey = 'stickings',
+      super.repository,
+      // super.settingsKey = 'stickings',
       super.parentKey});
 
   @override
   StickingsSettingsWidgetState createState() => StickingsSettingsWidgetState();
 }
 
-class StickingsSettingsWidgetState extends SettingsWidgetState<
-    StickingsSettings, StickingsSettingsRepository> {
-  @override
-  void initState() {
-    super.initState();
-    settingsRepository = StickingsSettingsRepository(
-        settings: widget.settings,
-        key: widget.settingsKey,
-        parentKey: widget.parentKey);
-  }
-
+class StickingsSettingsWidgetState
+    extends SettingsWidgetState<StickingsSettings> {
   void stickingLengthChanged(val) {
     setState(() => {
           settings.stickingLength = val,
@@ -139,13 +131,13 @@ class StickingsSettingsWidgetState extends SettingsWidgetState<
           LimbsSettingsWidget(
               settings: s.limbs,
               onChanged: (l) => setState(() => s.limbs = l),
-              parentKey: widget.settingsKey),
+              parentKey: s.key),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: []),
           RhythmicConstraintWidget(
               settings: s.rhythmicConstraint,
               onChanged: (constraint) =>
                   setState(() => {s.rhythmicConstraint = constraint}),
-              parentKey: settingsRepository.key),
+              parentKey: s.key),
         ])));
   }
 }

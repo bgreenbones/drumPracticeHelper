@@ -6,7 +6,7 @@ import "package:rhythm_practice_helper/utility.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "limb_settings.dart";
 
-class RhythmicConstraint {
+class RhythmicConstraint implements Settings {
   RhythmicConstraint({
     required int rhythmLength,
   }) {
@@ -29,11 +29,7 @@ class RhythmicConstraint {
     for (int i = 0; i < rhythm.length; i++) {}
     return rhythm.length - currentSubdivision;
   }
-}
 
-class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
-  RhythmicConstraintRepository(
-      {required super.settings, required super.key, required super.parentKey});
   String _boolToString(bool boolean) {
     return boolean ? '1' : '0';
   }
@@ -52,43 +48,51 @@ class RhythmicConstraintRepository extends SettingsObject<RhythmicConstraint> {
   }
 
   @override
-  void save() async {
-    prefsFuture.then((prefs) {
-      prefs.setStringList(
-          '$key/rhythm', _boolListToStringList(settings.rhythm));
-      prefs.setBool('$key/active', settings.active);
+  Future<void> save(
+      String parentKey, Future<SharedPreferences> prefsFuture) async {
+    String absKey = Settings.absoluteKey(parentKey, key);
+    await limbs.save(parentKey, prefsFuture);
+    await prefsFuture.then((prefs) {
+      prefs.setStringList('$absKey/rhythm', _boolListToStringList(rhythm));
+      prefs.setBool('$absKey/active', active);
       return prefs;
     });
   }
 
   @override
-  Future<RhythmicConstraint> load() async {
-    return prefsFuture.then((SharedPreferences prefs) {
-      // settings.limbs = ;
-      settings.rhythm =
-          _stringListToBoolList(prefs.getStringList('$key/rhythm')) ??
-              settings.rhythm;
-      settings.active = prefs.getBool('$key/active') ?? settings.active;
-      return settings;
+  Future<void> load(
+      String parentKey, Future<SharedPreferences> prefsFuture) async {
+    String absKey = Settings.absoluteKey(parentKey, key);
+    await limbs.load(parentKey, prefsFuture);
+    await prefsFuture.then((SharedPreferences prefs) {
+      int enforcedLength = rhythm.length;
+      rhythm = _stringListToBoolList(prefs.getStringList('$absKey/rhythm')) ??
+          rhythm;
+      rhythmLength = enforcedLength;
+      active = prefs.getBool('$absKey/active') ?? active;
     });
   }
+
+  @override
+  String key = 'rhythmicConstraint';
 }
 
 class RhythmicConstraintWidget extends SettingsWidget<RhythmicConstraint> {
-  const RhythmicConstraintWidget(
-      {super.key,
-      required super.settings,
-      required super.onChanged,
-      super.parentKey,
-      super.settingsKey = 'rhythmicConstraint'});
+  const RhythmicConstraintWidget({
+    super.key,
+    required super.settings,
+    required super.onChanged,
+    super.parentKey,
+    // super.settingsKey = 'rhythmicConstraint'
+  });
 
   @override
   RhythmicConstraintWidgetState createState() =>
       RhythmicConstraintWidgetState();
 }
 
-class RhythmicConstraintWidgetState extends SettingsWidgetState<
-    RhythmicConstraint, RhythmicConstraintRepository> {
+class RhythmicConstraintWidgetState
+    extends SettingsWidgetState<RhythmicConstraint> {
   bool expanded = false;
   late ExpandableController rhythmicConstraintController = ExpandableController(
     initialExpanded: expanded,
@@ -97,10 +101,6 @@ class RhythmicConstraintWidgetState extends SettingsWidgetState<
   @override
   void initState() {
     super.initState();
-    settingsRepository = RhythmicConstraintRepository(
-        settings: widget.settings,
-        key: widget.settingsKey,
-        parentKey: widget.parentKey);
     rhythmicConstraintController.addListener(() {
       expanded = !expanded;
     });
@@ -138,7 +138,7 @@ class RhythmicConstraintWidgetState extends SettingsWidgetState<
               onChanged: (l) => setState(() {
                     c.limbs = l;
                   }),
-              parentKey: settingsRepository.key),
+              parentKey: c.key),
         ]),
         controller: rhythmicConstraintController));
   }
