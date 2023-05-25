@@ -31,7 +31,7 @@ class SettingsRepository<T extends Settings> {
   }
 
   Widget getWidget(Widget Function(T) w) {
-    return getFutureBuilder(load(), w);
+    return getFutureBuilder(load(), settings, w);
   }
 }
 
