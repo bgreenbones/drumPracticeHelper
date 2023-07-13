@@ -6,7 +6,9 @@ const Color backgroundColor = Colors.black87;
 const Color darkGrey = Color.fromARGB(255, 72, 72, 72);
 
 const Color textColor = Colors.white70;
-const TextStyle defaultText = TextStyle(fontSize: 18, color: textColor);
+const double defaultTextSize = 18;
+const TextStyle defaultText =
+    TextStyle(fontSize: defaultTextSize, color: textColor);
 
 const elementPadding = EdgeInsets.all(2.0);
 const morePadding = EdgeInsets.all(10);

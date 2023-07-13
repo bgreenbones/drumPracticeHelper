@@ -1,3 +1,7 @@
+import 'dart:ffi';
+
+import 'package:trotter/trotter.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -7,15 +11,15 @@ import 'package:rhythm_practice_helper/timer_widget.dart';
 import 'styles.dart';
 import 'stickings_generate.dart';
 
-class StickingsDisplay extends StatefulWidget {
-  const StickingsDisplay({super.key});
+class StickingsDisplay2 extends StatefulWidget {
+  const StickingsDisplay2({super.key});
 
   @override
-  StickingsDisplayState createState() => StickingsDisplayState();
+  StickingsDisplay2State createState() => StickingsDisplay2State();
 }
 
-class StickingsDisplayState extends State<StickingsDisplay> {
-  int stickingIndex = 0;
+class StickingsDisplay2State extends State<StickingsDisplay2> {
+  BigInt stickingIndex = BigInt.from(0);
   bool editingSettings = false;
 
   bool showTimer = false;
@@ -24,8 +28,19 @@ class StickingsDisplayState extends State<StickingsDisplay> {
       SettingsRepository<StickingsSettings>(
           settings: StickingsSettings(), parentKey: "");
   // late List<String> stickings = generateStickings(settingsRepository.settings);
-  late var stickings =
-      generateStickings(settingsRepository.settings).asMap().entries.toList();
+  late Amalgams<String> stickingsAmalgams = Amalgams(
+      settingsRepository.settings.stickingLength,
+      settingsRepository.settings.limbs.usingSticks
+          .map((e) => e.symbol)
+          .toList());
+  late var stickings = stickingsAmalgams
+      .range(0, 10)
+      .map((e) => e.reduce((value, element) => value + element))
+      .toList()
+      .asMap()
+      .entries
+      .toList();
+
   double textSize = 1.5;
 
   void editSettings() {
@@ -39,8 +54,15 @@ class StickingsDisplayState extends State<StickingsDisplay> {
 
   void regenerate() {
     setState(() {
-      // stickings = generateStickings(settingsRepository.settings);
-      stickings = generateStickings(settingsRepository.settings)
+      stickingsAmalgams = Amalgams(
+          settingsRepository.settings.stickingLength,
+          settingsRepository.settings.limbs.usingSticks
+              .map((e) => e.symbol)
+              .toList());
+      stickings = stickingsAmalgams
+          .range(0, 100)
+          .map((e) => e.reduce((value, element) => value + element))
+          .toList()
           .asMap()
           .entries
           .toList();
@@ -69,8 +91,9 @@ class StickingsDisplayState extends State<StickingsDisplay> {
                           showTimer
                               ? TimerWidget(
                                   onTimerReset: () => setState(() {
-                                        stickingIndex = (stickingIndex + 1) %
-                                            stickings.length;
+                                        stickingIndex =
+                                            (stickingIndex + BigInt.one) %
+                                                stickingsAmalgams.length;
                                       }),
                                   onTimerStop: toggleTimer)
                               : Row(
@@ -111,28 +134,21 @@ class StickingsDisplayState extends State<StickingsDisplay> {
                             // ...stickings.asMap().entries.map((stickingEntry) {
                             ...stickings.map((stickingEntry) {
                               var sticking = stickingEntry.value;
-                              var index = stickingEntry.key;
-                              return Container(
-                                  padding: elementPadding,
-                                  // child: Row(
-                                  // mainAxisAlignment:
-                                  // MainAxisAlignment.spaceEvenly,
-                                  // children: [
-                                  // TextButton(
-                                  // onPressed: () =>
-                                  // setState(() => stickingIndex = index),
-                                  child: Text(sticking,
-                                      maxLines: 1,
-                                      textScaleFactor: textSize,
-                                      style: stickingIndex == index
-                                          ? const TextStyle(
-                                              color: Colors.orange,
-                                              fontSize: defaultTextSize)
-                                          : defaultText)
-                                  // ,)
-                                  // ],
-                                  // ),
-                                  );
+                              var index = BigInt.from(stickingEntry.key);
+                              return
+                                  // Container(
+                                  //     padding: elementPadding,
+                                  TextButton(
+                                      onPressed: () =>
+                                          setState(() => stickingIndex = index),
+                                      child: Text(sticking,
+                                          maxLines: 1,
+                                          textScaleFactor: textSize,
+                                          style: stickingIndex == index
+                                              ? const TextStyle(
+                                                  color: Colors.orange,
+                                                  fontSize: defaultTextSize)
+                                              : defaultText));
                             })
                           ])))
                         ]))),

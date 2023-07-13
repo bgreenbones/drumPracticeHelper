@@ -4,6 +4,7 @@ import 'package:rhythm_practice_helper/ad_helper.dart';
 import 'package:rhythm_practice_helper/reference_points.dart';
 import 'package:rhythm_practice_helper/styles.dart';
 import 'stickings_display.dart';
+import 'stickings_display2.dart';
 import 'groupings.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -20,10 +21,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _currentConceptName = "stickings";
-  Widget _currentConcept = StickingsDisplay();
+  Widget _currentConcept = StickingsDisplay2();
   final Map<String, Widget> _concepts = {
     "groupings tabber": const Groupings(),
-    "stickings": StickingsDisplay(),
+    "stickings": const StickingsDisplay2(),
     "reference points": const ReferencePoints()
   };
 
